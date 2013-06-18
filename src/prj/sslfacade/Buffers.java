@@ -164,17 +164,23 @@ public class Buffers
 
     public void prepareForUnwrap(ByteBuffer data)
     {
-        growIfNecessary(BufferType.IN_CIPHER, data.capacity());
         clear(BufferType.IN_CIPHER, BufferType.IN_PLAIN);
-        get(BufferType.IN_CIPHER).put(data);
+        if (data != null)
+        {
+            growIfNecessary(BufferType.IN_CIPHER, data.capacity());
+            get(BufferType.IN_CIPHER).put(data);
+        }
     }
 
     public void prepareForWrap(ByteBuffer data)
     {
         //Avoid buffer overflow when loading plain data and clear buffers
-        growIfNecessary(BufferType.OUT_PLAIN, data.capacity());
         clear(BufferType.OUT_PLAIN, BufferType.OUT_CIPHER);
-        get(BufferType.OUT_PLAIN).put(data);
+        if (data != null)
+        {
+            growIfNecessary(BufferType.OUT_PLAIN, data.capacity());
+            get(BufferType.OUT_PLAIN).put(data);
+        }
     }
 
     public void prepareRetrial(BufferType source, BufferType destination)
