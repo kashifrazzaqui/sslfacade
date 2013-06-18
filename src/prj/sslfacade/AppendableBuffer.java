@@ -12,9 +12,9 @@ public class AppendableBuffer
         if (notNull())
         {
             nb.put(_);
+            clear();
         }
         nb.put(data);
-        clear();
         return nb;
     }
 
@@ -31,6 +31,8 @@ public class AppendableBuffer
             _.clear();
         }
     }
+
+    /* private */
 
     private int calculateSize(ByteBuffer data)
     {
