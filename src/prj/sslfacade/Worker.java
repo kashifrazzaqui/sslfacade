@@ -9,14 +9,12 @@ public class Worker
 {
     private final SSLEngine _engine;
     private final Buffers _buffers;
-    private final AppendableBuffer _pendingUnwrapData;
     private SSLListener _sslListener;
 
     public Worker(SSLEngine engine, Buffers buffers)
     {
         _engine = engine;
         _buffers = buffers;
-        _pendingUnwrapData = new AppendableBuffer();
     }
 
     public void beginHandshake() throws SSLException
@@ -82,7 +80,7 @@ public class Worker
     public SSLEngineResult unwrap(ByteBuffer encryptedData) throws SSLException
     {
         //TODO: OOP-able?
-        encryptedData = _pendingUnwrapData.append(encryptedData);
+        encryptedData = _buffers.prependCached(encryptedData);
         _buffers.prepareForUnwrap(encryptedData);
         SSLEngineResult result = doUnwrap();
         emitPlainData(result);
@@ -91,7 +89,7 @@ public class Worker
         {
             case BUFFER_UNDERFLOW:
                 compact(encryptedData, result);
-                _pendingUnwrapData.set(encryptedData);
+                _buffers.cache(encryptedData);
                 break;
             case BUFFER_OVERFLOW:
                 _buffers.grow(BufferType.IN_PLAIN);
@@ -99,7 +97,7 @@ public class Worker
                 unwrap(encryptedData);
                 break;
             case OK:
-                _pendingUnwrapData.clear();
+                _buffers.clearCache();
                 break;
             case CLOSED:
                 //TODO

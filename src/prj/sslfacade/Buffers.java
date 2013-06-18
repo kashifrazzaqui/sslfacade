@@ -34,6 +34,7 @@ public class Buffers
     private ByteBuffer _myApp;
     private ByteBuffer _peerNet;
     private ByteBuffer _myNet;
+    private AppendableBuffer _unwrapCache;
     private final SSLSession _session;
 
     public Buffers(SSLSession session)
@@ -44,10 +45,12 @@ public class Buffers
          */
         _session = session;
         allocate();
+        _unwrapCache = new AppendableBuffer();
     }
 
     public void resetAllBufferSizes()
     {
+        //TODO: Use this to clear evergrowing buffers
         allocate();
     }
 
@@ -195,4 +198,18 @@ public class Buffers
         get(destination).clear();
     }
 
+    public ByteBuffer prependCached(ByteBuffer data)
+    {
+        return _unwrapCache.append(data);
+    }
+
+    public void cache(ByteBuffer data)
+    {
+        _unwrapCache.set(data);
+    }
+
+    public void clearCache()
+    {
+        _unwrapCache.clear();
+    }
 }
