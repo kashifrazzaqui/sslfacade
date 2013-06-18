@@ -27,7 +27,7 @@ public class Buffers
      unwrap. Additionally, it is important to note that these buffers may
      have to be resized during operations and hence it is neither simple nor
      maintainable to allow the host application to inject its own buffers.
-     In short, leave these Buffers alone!
+     In short, leave these buffers alone!
      */
 
     private ByteBuffer _peerApp;
@@ -43,14 +43,12 @@ public class Buffers
          required when growing buffers.
          */
         _session = session;
+        allocate();
+    }
 
-        int applicationBufferSize = session.getApplicationBufferSize();
-        int packetBufferSize = session.getPacketBufferSize();
-
-        _peerApp = ByteBuffer.allocate(applicationBufferSize);
-        _myApp = ByteBuffer.allocate(applicationBufferSize);
-        _peerNet = ByteBuffer.allocate(packetBufferSize);
-        _myNet = ByteBuffer.allocate(packetBufferSize);
+    public void resetAllBufferSizes()
+    {
+        allocate();
     }
 
     public ByteBuffer get(BufferType t)
@@ -74,54 +72,121 @@ public class Buffers
         return result;
     }
 
-    public void manage(BufferType t)
+    public void assign(BufferType t, ByteBuffer b)
+    {
+        switch (t)
+        {
+
+            case IN_PLAIN:
+                _peerApp = b;
+                break;
+            case IN_CIPHER:
+                _peerNet = b;
+                break;
+            case OUT_PLAIN:
+                _myApp = b;
+                break;
+            case OUT_CIPHER:
+                _myNet = b;
+                break;
+        }
+    }
+
+    public void grow(BufferType t)
     {
         //TODO
         switch (t)
         {
             case IN_PLAIN:
-                _peerApp = growOrCompact(t, _session.getApplicationBufferSize());
+                assign(t, grow(t,
+                        _session.getApplicationBufferSize()));
                 break;
             case IN_CIPHER:
-                _peerNet = growOrCompact(t, _session.getPacketBufferSize());
+                assign(t, grow(t, _session.getPacketBufferSize()));
                 break;
             case OUT_PLAIN:
                 //No known reason for this case to occur
                 break;
             case OUT_CIPHER:
-                _myNet = growOrCompact(t, _session.getPacketBufferSize());
+                assign(t, grow(t, _session.getPacketBufferSize()));
                 break;
         }
 
     }
 
-    private ByteBuffer growOrCompact(BufferType t, int recommendedBufferSize)
+    public void resetSize(BufferType t, int size)
     {
-        ByteBuffer originalBuffer = get(t);
-        if (recommendedBufferSize > originalBuffer.capacity())
-        {
-            return grow(recommendedBufferSize, originalBuffer);
+        ByteBuffer newBuffer = ByteBuffer.allocate(size);
+        copy(get(t), newBuffer);
+        assign(t, newBuffer);
+    }
 
-        }
-        else
+    private void growIfNecessary(BufferType t, int size)
+    {
+        //grow if not enough space
+        ByteBuffer b = get(t);
+        if (b.capacity() < size)
         {
-            //if its already big enough,lets compact it
-            return compact(originalBuffer);
+            resetSize(t, size);
         }
     }
 
-    private ByteBuffer compact(ByteBuffer originalBuffer)
+    public ByteBuffer grow(BufferType b, int recommendedBufferSize)
     {
-        originalBuffer.compact();
-        return originalBuffer;
-    }
-
-    private ByteBuffer grow(int recommendedBufferSize, ByteBuffer originalBuffer)
-    {
-        //growth strategy is to make it atleast as big
+        /*
+        guaranteed to grow the buffer to the minimum recommended size or
+        more. If the buffer is at the recommended minimum size we could
+        still be facing repeated overflows because the host application
+        might misbehave or be incapable of draining the buffer in
+        an appropriate fashion - we expect the host application to fix this.
+        */
+        ByteBuffer originalBuffer = get(b);
         ByteBuffer newBuffer = ByteBuffer.allocate(recommendedBufferSize);
-        originalBuffer.flip();
-        newBuffer.put(originalBuffer);
+        copy(originalBuffer, newBuffer);
         return newBuffer;
     }
+
+    public void copy(ByteBuffer from, ByteBuffer to)
+    {
+        from.rewind();
+        to.put(from);
+    }
+
+    private void allocate()
+    {
+        int applicationBufferSize = _session.getApplicationBufferSize();
+        int packetBufferSize = _session.getPacketBufferSize();
+        _peerApp = ByteBuffer.allocate(applicationBufferSize);
+        _myApp = ByteBuffer.allocate(applicationBufferSize);
+        _peerNet = ByteBuffer.allocate(packetBufferSize);
+        _myNet = ByteBuffer.allocate(packetBufferSize);
+    }
+
+    public void prepareForUnwrap(ByteBuffer data)
+    {
+        growIfNecessary(BufferType.IN_CIPHER, data.capacity());
+        clear(BufferType.IN_CIPHER, BufferType.IN_PLAIN);
+        get(BufferType.IN_CIPHER).put(data);
+    }
+
+    public void prepareForWrap(ByteBuffer data)
+    {
+        //Avoid buffer overflow when loading plain data and clear buffers
+        growIfNecessary(BufferType.OUT_PLAIN, data.capacity());
+        clear(BufferType.OUT_PLAIN, BufferType.OUT_CIPHER);
+        get(BufferType.OUT_PLAIN).put(data);
+    }
+
+    public void prepareRetrial(BufferType source, BufferType destination)
+    {
+        get(source).rewind();
+        get(destination).clear();
+    }
+
+    private void clear(BufferType source, BufferType destination)
+    {
+        get(source).clear();
+        get(destination).clear();
+    }
+
 }

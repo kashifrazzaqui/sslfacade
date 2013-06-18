@@ -1,55 +1,72 @@
 package prj.sslfacade;
 
-import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
-import javax.net.ssl.SSLException;
+import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.HashSet;
-import java.util.Set;
 
 import static javax.net.ssl.SSLEngineResult.HandshakeStatus;
 
 public class Handshaker
 {
-    private final SSLEngine _engine;
-    private final Buffers _buffers;
-    private final TaskHandler _taskHandler;
-    private final Tasks _tasks;
-    private boolean _finished;
-    private Set<HandshakeCompletedListener> _hscl;
+    /*
+         The purpose of this class is to conduct a SSL handshake. To do this it
+         requires a SSLEngine as a provider of SSL knowhow. Byte buffers that are
+         required by the SSLEngine to execute its wrap and unwrap methods. And a
+         TaskHandler callback that is used to delegate the responsibility of
+         executing long-running/IO tasks to the host application. By providing a
+         TaskHandler the host application gains the flexibility of executing
+         these tasks in compliance with its own compute/IO strategies.
+         */
 
-    public Handshaker(SSLEngine engine, Buffers buffers, TaskHandler th)
+    private final TaskHandler _taskHandler;
+    private final Worker _worker;
+    private boolean _finished;
+    private HandshakeCompletedListener _hscl;
+    private HostTransport _transport;
+
+    public Handshaker(Worker worker, TaskHandler taskHandler)
     {
-        _engine = engine;
-        _taskHandler = th;
-        _tasks = new Tasks(_engine);
-        _buffers = buffers;
+        _worker = worker;
+        _taskHandler = taskHandler;
         _finished = false;
-        _hscl = new HashSet<>();
+        _hscl = null;
     }
 
-    public void begin() throws SSLException
+    public void begin(HostTransport transport) throws IOException, InsufficentUnwrapData
     {
-        _engine.beginHandshake();
+        _transport = transport;
+        _worker.beginHandshake();
         shakehands(getHandshakeStatus());
     }
 
-    public void carryOn() throws SSLException
+    public void carryOn(ByteBuffer data) throws IOException, InsufficentUnwrapData
     {
+        //data can be null when resuming from a previous NEED_TASK state
+        if (data != null)
+        {
+            _worker.loadUnwrapPayload(data);
+        }
         shakehands(getHandshakeStatus());
     }
 
     public void addCompletedListener(HandshakeCompletedListener hscl)
     {
-        _hscl.add(hscl);
+        _hscl = hscl;
     }
 
     public void removeCompletedListener(HandshakeCompletedListener hscl)
     {
-        _hscl.remove(hscl);
+        _hscl = hscl;
     }
 
-    private void shakehands(HandshakeStatus handshakeStatus) throws SSLException
+    public boolean isFinished()
+    {
+        return _finished;
+    }
+
+
+    /* Privates */
+    private void shakehands(HandshakeStatus handshakeStatus) throws IOException, InsufficentUnwrapData
     {
         switch (handshakeStatus)
         {
@@ -59,37 +76,43 @@ public class Handshaker
                 handshakeFinished();
                 break;
             case NEED_TASK:
-                _taskHandler.process(_tasks);
+                _taskHandler.process(new Tasks(_worker));
                 break;
             case NEED_WRAP:
-                SSLEngineResult w_result = doWrap();
-                processSSLEngineResult(w_result, handshakeStatus);
-                shakehands(getHandshakeStatus());
+                SSLEngineResult w_result = _worker.doWrap();
+                if (isSuccessful(w_result))
+                {
+                    _worker.sendCipherText(_transport);
+                }
+                else
+                {
+                    processSSLEngineResult(w_result, handshakeStatus);
+                }
                 break;
             case NEED_UNWRAP:
-                SSLEngineResult u_result = doUnwrap();
+                SSLEngineResult u_result = _worker.doUnwrap();
                 processSSLEngineResult(u_result, handshakeStatus);
-                shakehands(getHandshakeStatus());
                 break;
         }
+    }
+
+    private boolean isSuccessful(SSLEngineResult w_result)
+    {
+        return w_result.getStatus().equals(SSLEngineResult.Status.OK);
     }
 
     private void handshakeFinished()
     {
         _finished = true;
-        fireCompletedListeners();
+        _hscl.onComplete();
     }
 
-    private void fireCompletedListeners()
+    private HandshakeStatus getHandshakeStatus()
     {
-        for(HandshakeCompletedListener l: _hscl)
-        {
-            l.onComplete();
-        }
+        return _worker.getHandshakeStatus();
     }
 
-
-    private void processSSLEngineResult(SSLEngineResult result, HandshakeStatus hs)
+    public void processSSLEngineResult(SSLEngineResult result, SSLEngineResult.HandshakeStatus hs) throws IOException, InsufficentUnwrapData
     {
         switch (result.getStatus())
         {
@@ -116,30 +139,38 @@ public class Handshaker
                 }
                 else
                 {
-                    _buffers.manage(BufferType.IN_CIPHER);
+                    /*
+                     While unwrapping if the source cipher data is
+                     insufficient.
+
+                     This can occur because the host
+                     application has not provided enough data. The host
+                     application should wait for more data and then retry ALL
+                     unprocessed data again.
+
+                     This cannot occur because there is insufficent space in the
+                     IN_CIPHER(source) buffer because when the host application
+                     attempts to write into IN_CIPHER then it get a
+                     BufferOverflowException. In such a case,
+                     the host application can call the resetSize method on
+                     Buffers and specify a sufficient size and then retry ALL
+                     data again.
+                     */
+                    throw new InsufficentUnwrapData(
+                            "Need more cipher data to unwrap.");
                 }
-                break;
             case BUFFER_OVERFLOW:
                 if (wrapping(hs))
                 {
-                    _buffers.manage(BufferType.OUT_CIPHER);
+                    _worker.handleBufferOverflow(BufferType.OUT_PLAIN,
+                            BufferType.OUT_CIPHER);
                 }
                 else
                 {
-                    _buffers.manage(BufferType.IN_PLAIN);
+                    _worker.handleBufferOverflow(BufferType.IN_CIPHER,
+                            BufferType.IN_PLAIN);
                 }
-                break;
-            case OK:
-                if (wrapping(hs))
-                {
-                    _buffers.get(BufferType.OUT_PLAIN).clear();
-                    _buffers.get(BufferType.OUT_CIPHER).flip();
-                }
-                else
-                {
-                    _buffers.get(BufferType.IN_CIPHER).clear();
-                    _buffers.get(BufferType.IN_PLAIN).flip();
-                }
+                shakehands(getHandshakeStatus());
                 break;
             case CLOSED:
                 //TODO - its all over but should we mark handshake finished?
@@ -147,33 +178,8 @@ public class Handshaker
         }
     }
 
-    private boolean wrapping(HandshakeStatus hs)
+    private boolean wrapping(SSLEngineResult.HandshakeStatus hs)
     {
-        return hs.equals(HandshakeStatus.NEED_WRAP);
-    }
-
-
-    private SSLEngineResult doWrap() throws SSLException
-    {
-        ByteBuffer plainText = _buffers.get(BufferType.OUT_PLAIN);
-        ByteBuffer cipherText = _buffers.get(BufferType.OUT_CIPHER);
-        return _engine.wrap(plainText, cipherText);
-    }
-
-    private SSLEngineResult doUnwrap() throws SSLException
-    {
-        ByteBuffer plainText = _buffers.get(BufferType.IN_PLAIN);
-        ByteBuffer cipherText = _buffers.get(BufferType.IN_CIPHER);
-        return _engine.unwrap(cipherText, plainText);
-    }
-
-    private HandshakeStatus getHandshakeStatus()
-    {
-        return _engine.getHandshakeStatus();
-    }
-
-    public boolean isFinished()
-    {
-        return _finished;
+        return hs.equals(SSLEngineResult.HandshakeStatus.NEED_WRAP);
     }
 }

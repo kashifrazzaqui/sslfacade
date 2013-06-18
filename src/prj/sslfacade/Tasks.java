@@ -1,18 +1,16 @@
 package prj.sslfacade;
 
-import javax.net.ssl.SSLEngine;
-
 public class Tasks
 {
-    private final SSLEngine _engine;
+    private final Worker _worker;
 
-    public Tasks(SSLEngine engine)
+    public Tasks(Worker worker)
     {
-       _engine = engine;
+        _worker = worker;
     }
 
     public Runnable next()
     {
-        return _engine.getDelegatedTask();
+        return _worker.getDelegatedTask();
     }
 }
