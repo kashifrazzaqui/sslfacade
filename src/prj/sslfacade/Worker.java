@@ -3,7 +3,6 @@ package prj.sslfacade;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class Worker
@@ -35,11 +34,6 @@ public class Worker
         return _engine.getDelegatedTask();
     }
 
-    public void sendCipherText(HostTransport transport) throws IOException
-    {
-        transport.send(_buffers.get(BufferType.OUT_CIPHER));
-    }
-
     public void handleBufferOverflow(BufferType src, BufferType dest)
     {
         _buffers.prepareRetrial(src, dest);
@@ -65,7 +59,7 @@ public class Worker
         //TODO: OOP-able?
         _buffers.prepareForWrap(plainData);
         SSLEngineResult result = doWrap();
-        emitAnyWrappedData(result);
+        emitWrappedData(result);
 
         switch (result.getStatus())
         {
@@ -90,7 +84,7 @@ public class Worker
         encryptedData = _pendingUnwrapData.append(encryptedData);
         _buffers.prepareForUnwrap(encryptedData);
         SSLEngineResult result = doUnwrap();
-        emitAnyPlainData(result);
+        emitPlainData(result);
 
         switch (result.getStatus())
         {
@@ -122,36 +116,26 @@ public class Worker
         return _engine.getHandshakeStatus();
     }
 
-    /* Private */
-
-    private void emitAnyWrappedData(SSLEngineResult result)
+    public void emitWrappedData(SSLEngineResult result)
     {
         if (result.bytesProduced() > 0)
         {
             ByteBuffer internalCipherBuffer = _buffers.get(BufferType.OUT_CIPHER);
-            emitWrapped(makeExternalBuffer(internalCipherBuffer));
+            _sslListener.onWrappedData(makeExternalBuffer(internalCipherBuffer));
         }
     }
 
-    private void emitAnyPlainData(SSLEngineResult result)
+    public void emitPlainData(SSLEngineResult result)
     {
         if (result.bytesProduced() > 0)
         {
             ByteBuffer internalPlainBuffer = _buffers.get(BufferType.IN_PLAIN);
-            emitPlain(makeExternalBuffer(internalPlainBuffer));
+            _sslListener.onPlainData(makeExternalBuffer(internalPlainBuffer));
         }
 
     }
 
-    private void emitWrapped(ByteBuffer wrappedData)
-    {
-        _sslListener.onWrappedData(wrappedData);
-    }
-
-    private void emitPlain(ByteBuffer plainData)
-    {
-        _sslListener.onPlainData(plainData);
-    }
+    /* Private */
 
     private ByteBuffer makeExternalBuffer(ByteBuffer internalBuffer)
     {

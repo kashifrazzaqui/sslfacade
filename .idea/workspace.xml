@@ -2,15 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="85cab483-6b72-46f0-aa0a-a9fb1bfed506" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/prj/sslfacade/Buffers.java" afterPath="$PROJECT_DIR$/src/prj/sslfacade/Buffers.java" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/prj/sslfacade/HostTransport.java" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/prj/sslfacade/Handshaker.java" afterPath="$PROJECT_DIR$/src/prj/sslfacade/Handshaker.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/prj/sslfacade/TaskHandler.java" afterPath="$PROJECT_DIR$/src/prj/sslfacade/TaskHandler.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/prj/sslfacade/Tasks.java" afterPath="$PROJECT_DIR$/src/prj/sslfacade/Tasks.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/prj/sslfacade/SSLFacade.java" afterPath="$PROJECT_DIR$/src/prj/sslfacade/SSLFacade.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/prj/sslfacade/Worker.java" afterPath="$PROJECT_DIR$/src/prj/sslfacade/Worker.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sslfacade.iml" afterPath="$PROJECT_DIR$/sslfacade.iml" />
     </list>
     <ignored path="sslfacade.iws" />
     <ignored path=".idea/workspace.xml" />
-    <file path="/Handshaker.java" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1370933764297" ignored="false" />
+    <file path="/Handshaker.java" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1371539023474" ignored="false" />
     <file path="/SSLBuffers.java" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1369288791898" ignored="false" />
     <file path="/Tasks.java" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1370931530707" ignored="false" />
     <file path="/fragment.java" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1371462547591" ignored="false" />
@@ -18,7 +18,7 @@
     <file path="/BufferType.java" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1369652131681" ignored="false" />
     <file path="/a.dummy" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1371463056009" ignored="false" />
     <file path="$PROJECT_DIR$/.idea/workspace.xml" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1369309218766" ignored="false" />
-    <file path="/SSLFacade.java" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1371460591312" ignored="false" />
+    <file path="/SSLFacade.java" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1371538985951" ignored="false" />
     <file path="/Buffers.java" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1371460869296" ignored="false" />
     <file path="/a.html" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1369653700029" ignored="false" />
     <file path="/a.java" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1369653823369" ignored="false" />
@@ -28,8 +28,8 @@
     <file path="/DefaultTaskHandler.java" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1369899942930" ignored="false" />
     <file path="/SSLManager.java" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1369900659601" ignored="false" />
     <file path="/SSLFacadeTest.java" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1369905276485" ignored="false" />
-    <file path="/Worker.java" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1371463195942" ignored="false" />
-    <file path="/Dummy.txt" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1371462836849" ignored="false" />
+    <file path="/Worker.java" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1371538841034" ignored="false" />
+    <file path="/Dummy.txt" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1371536759114" ignored="false" />
     <file path="/thoughts.txt" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1371463411628" ignored="false" />
     <file path="/SSLListener.java" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1371458629545" ignored="false" />
     <file path="/AppendableBuffer.java" changelist="85cab483-6b72-46f0-aa0a-a9fb1bfed506" time="1371464299706" ignored="false" />
@@ -102,28 +102,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SSLFacade.java" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="SSLFacade.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/prj/sslfacade/SSLFacade.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="17" column="31" selection-start="490" selection-end="490" vertical-scroll-proportion="0.0">
-              <folding />
+            <state line="31" column="21" selection-start="925" selection-end="925" vertical-scroll-proportion="0.40384614">
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Worker.java" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="Worker.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/prj/sslfacade/Worker.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="86" column="62" selection-start="2431" selection-end="2431" vertical-scroll-proportion="0.32692307">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="AppendableBuffer.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/prj/sslfacade/AppendableBuffer.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="23" column="10" selection-start="461" selection-end="461" vertical-scroll-proportion="0.0">
+            <state line="137" column="3" selection-start="3878" selection-end="3878" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -132,7 +125,7 @@
       <file leaf-file-name="Handshaker.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/prj/sslfacade/Handshaker.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="164" column="39" selection-start="5774" selection-end="5774" vertical-scroll-proportion="0.0">
+            <state line="165" column="19" selection-start="5814" selection-end="5814" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -165,18 +158,18 @@
         <option value="$PROJECT_DIR$/src/prj/sslfacade/HandshakeNotCompleted.java" />
         <option value="$PROJECT_DIR$/src/prj/sslfacade/Tasks.java" />
         <option value="$PROJECT_DIR$/src/old/SSLManager.java" />
-        <option value="$PROJECT_DIR$/src/prj/sslfacade/Handshaker.java" />
         <option value="$PROJECT_DIR$/src/prj/sslfacade/SSLListener.java" />
-        <option value="$PROJECT_DIR$/src/prj/sslfacade/SSLFacade.java" />
         <option value="$PROJECT_DIR$/src/prj/sslfacade/Buffers.java" />
         <option value="$PROJECT_DIR$/src/prj/sslfacade/thoughts.txt" />
         <option value="$PROJECT_DIR$/src/prj/sslfacade/AppendableBuffer.java" />
         <option value="$PROJECT_DIR$/src/prj/sslfacade/Worker.java" />
+        <option value="$PROJECT_DIR$/src/prj/sslfacade/SSLFacade.java" />
+        <option value="$PROJECT_DIR$/src/prj/sslfacade/Handshaker.java" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-1921" />
+    <option name="x" value="-1" />
     <option name="y" value="-4" />
     <option name="width" value="1922" />
     <option name="height" value="1085" />
@@ -257,8 +250,8 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="PackagesPane" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -348,9 +341,9 @@
     <property name="com.intellij.testIntegration.createTest.CreateTestDialog.includeInheritedMembers" value="false" />
     <property name="MemberChooser.showClasses" value="true" />
     <property name="GoToClass.includeLibraries" value="false" />
-    <property name="dynamic.classpath" value="false" />
-    <property name="options.splitter.details.proportions" value="0.2" />
     <property name="options.searchVisible" value="true" />
+    <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="dynamic.classpath" value="false" />
   </component>
   <component name="RecentsManager">
     <key name="CreateTestDialog.RecentsKey">
@@ -496,7 +489,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-1921" y="-4" width="1922" height="1085" extended-state="6" />
+    <frame x="-1" y="-4" width="1922" height="1085" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -507,7 +500,7 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32952183" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32977587" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32952183" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -585,13 +578,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/old/SSLTransport.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="4" column="0" selection-start="43" selection-end="43" vertical-scroll-proportion="0.07692308">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/prj/sslfacade/InsufficentUnwrapData.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="2" column="34" selection-start="58" selection-end="58" vertical-scroll-proportion="0.03846154">
@@ -633,20 +619,6 @@
         <state line="47" column="8" selection-start="1172" selection-end="1172" vertical-scroll-proportion="0.88461536" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/prj/sslfacade/Buffers.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="133" column="26" selection-start="3964" selection-end="3964" vertical-scroll-proportion="0.32692307">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/prj/sslfacade/Handshaker.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="164" column="39" selection-start="5774" selection-end="5774" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar:///usr/lib/jvm/jdk1.7/src.zip!/java/nio/Buffer.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="383" column="4" selection-start="11969" selection-end="11969" vertical-scroll-proportion="0.9230769">
@@ -661,20 +633,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/prj/sslfacade/AppendableBuffer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="23" column="10" selection-start="461" selection-end="461" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/prj/sslfacade/SSLFacade.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="17" column="31" selection-start="490" selection-end="490" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/prj/sslfacade/developer.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state line="62" column="14" selection-start="2734" selection-end="2734" vertical-scroll-proportion="0.0">
@@ -682,10 +640,40 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/prj/sslfacade/Buffers.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="177" column="4" selection-start="5644" selection-end="5644" vertical-scroll-proportion="0.9230769">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/prj/sslfacade/AppendableBuffer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="23" column="10" selection-start="461" selection-end="461" vertical-scroll-proportion="0.3653846">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/prj/sslfacade/Handshaker.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="165" column="19" selection-start="5814" selection-end="5814" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/prj/sslfacade/Worker.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="86" column="62" selection-start="2431" selection-end="2431" vertical-scroll-proportion="0.32692307">
+        <state line="137" column="3" selection-start="3878" selection-end="3878" vertical-scroll-proportion="0.0">
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/prj/sslfacade/SSLFacade.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="31" column="21" selection-start="925" selection-end="925" vertical-scroll-proportion="0.40384614">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

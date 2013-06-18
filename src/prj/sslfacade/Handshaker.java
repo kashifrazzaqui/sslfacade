@@ -22,7 +22,6 @@ public class Handshaker
     private final Worker _worker;
     private boolean _finished;
     private HandshakeCompletedListener _hscl;
-    private HostTransport _transport;
 
     public Handshaker(Worker worker, TaskHandler taskHandler)
     {
@@ -32,9 +31,8 @@ public class Handshaker
         _hscl = null;
     }
 
-    public void begin(HostTransport transport) throws IOException, InsufficentUnwrapData
+    public void begin() throws IOException, InsufficentUnwrapData
     {
-        _transport = transport;
         _worker.beginHandshake();
         shakehands(getHandshakeStatus());
     }
@@ -82,7 +80,7 @@ public class Handshaker
                 SSLEngineResult w_result = _worker.doWrap();
                 if (isSuccessful(w_result))
                 {
-                    _worker.sendCipherText(_transport);
+                    _worker.emitWrappedData(w_result);
                 }
                 else
                 {
@@ -137,7 +135,7 @@ public class Handshaker
                      */
                     throw new RuntimeException("ERROR: Buffer underflow in a wrap!");
                 }
-                else
+                else /* unwrap */
                 {
                     /*
                      While unwrapping if the source cipher data is

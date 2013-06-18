@@ -22,12 +22,12 @@ public class SSLFacade
         _handshaker = new Handshaker(_worker, taskHandler);
     }
 
-    public void beginHandshake(HostTransport transport) throws IOException
+    public void beginHandshake() throws IOException
     {
         attachCompletionListener();
         try
         {
-            _handshaker.begin(transport);
+            _handshaker.begin();
         }
         catch (InsufficentUnwrapData ignored)
         {
