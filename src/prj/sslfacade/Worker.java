@@ -54,7 +54,7 @@ public class Worker
         return _engine.unwrap(cipherText, plainText);
     }
 
-    public void wrap(ByteBuffer plainData) throws SSLException
+    public SSLEngineResult wrap(ByteBuffer plainData) throws SSLException
     {
         //TODO: OOP-able?
         _buffers.prepareForWrap(plainData);
@@ -76,9 +76,10 @@ public class Worker
                 //TODO
                 break;
         }
+        return result;
     }
 
-    public void unwrap(ByteBuffer encryptedData) throws SSLException
+    public SSLEngineResult unwrap(ByteBuffer encryptedData) throws SSLException
     {
         //TODO: OOP-able?
         encryptedData = _pendingUnwrapData.append(encryptedData);
@@ -104,6 +105,7 @@ public class Worker
                 //TODO
                 break;
         }
+        return result;
     }
 
     public void setSSLListener(SSLListener SSLListener)
