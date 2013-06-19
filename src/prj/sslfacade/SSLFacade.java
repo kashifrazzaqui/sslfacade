@@ -15,24 +15,12 @@ public class SSLFacade
     public SSLFacade(SSLContext context, boolean client,
                      boolean clientAuthRequired, TaskHandler taskHandler)
     {
-        //TODO: Host, port stuff
+        //Currently there is no support for SSL session reuse,
+        // so no need to take a peerhost or port from the host application
         SSLEngine engine = makeSSLEngine(context, client, clientAuthRequired);
         Buffers buffers = new Buffers(engine.getSession());
         _worker = new Worker(engine, buffers);
         _handshaker = new Handshaker(_worker, taskHandler);
-    }
-
-    public void beginHandshake() throws IOException
-    {
-        attachCompletionListener();
-        try
-        {
-            _handshaker.begin();
-        }
-        catch (InsufficentUnwrapData ignored)
-        {
-            //When more data arrives try again
-        }
     }
 
     public void setHandshakeCompletedListener(HandshakeCompletedListener hcl)
@@ -43,6 +31,12 @@ public class SSLFacade
     public void setSSLListener(SSLListener l)
     {
         _worker.setSSLListener(l);
+    }
+
+    public void beginHandshake() throws IOException
+    {
+        attachCompletionListener();
+        _handshaker.begin();
     }
 
     public boolean isHandshakeCompleted()
@@ -56,9 +50,13 @@ public class SSLFacade
     }
 
 
-    public void decrypt(ByteBuffer encryptedData) throws SSLException
+    public void decrypt(ByteBuffer encryptedData) throws IOException
     {
         _worker.unwrap(encryptedData);
+        if (!isHandshakeCompleted())
+        {
+            _handshaker.carryOn();
+        }
     }
 
     /* Privates */

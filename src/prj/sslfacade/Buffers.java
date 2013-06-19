@@ -7,9 +7,11 @@ public class Buffers
 {
     /*
      Buffers is a simple abstraction that encapsulates the 4 SSL
-     buffers and an unwrap caching buffer. The unwrap caching buffer is
-     required to cache previously recevied partial TLS packet which could not
-     be unwrapped.
+     buffers and an unwrap caching buffer.
+
+     The unwrap caching buffer is required to cache previously recevied
+     partial TLS packet which could not be unwrapped.
+
      The four ByteBuffers required to operate an SSLEngine. One way to look
      at the role of these buffers is that two of these buffers are used to
      process incoming data and the other two are used to process outgoing data.
@@ -21,7 +23,9 @@ public class Buffers
      the private fields in this class so that the reader is able to associate
      them to the Java provided documentation with ease. For publically visible
      contracts, I felt better names were possible and have defined them
-     in an enum called BufferType.
+     in an enum called BufferType. Also, note that handshake data during an
+     unwrap is never put in the IN_PLAIN buffer after unwrapping,
+     only application data is available here when applicable.
 
      In order to create an instance of Buffers all we need is a SSLSession.
 

@@ -38,14 +38,14 @@ public class Worker
         _buffers.grow(dest);
     }
 
-    public SSLEngineResult doWrap() throws SSLException
+    private SSLEngineResult doWrap() throws SSLException
     {
         ByteBuffer plainText = _buffers.get(BufferType.OUT_PLAIN);
         ByteBuffer cipherText = _buffers.get(BufferType.OUT_CIPHER);
         return _engine.wrap(plainText, cipherText);
     }
 
-    public SSLEngineResult doUnwrap() throws SSLException
+    private SSLEngineResult doUnwrap() throws SSLException
     {
         ByteBuffer cipherText = _buffers.get(BufferType.IN_CIPHER);
         ByteBuffer plainText = _buffers.get(BufferType.IN_PLAIN);
@@ -116,7 +116,7 @@ public class Worker
         return _engine.getHandshakeStatus();
     }
 
-    public void emitWrappedData(SSLEngineResult result)
+    private void emitWrappedData(SSLEngineResult result)
     {
         if (result.bytesProduced() > 0)
         {
@@ -125,7 +125,7 @@ public class Worker
         }
     }
 
-    public void emitPlainData(SSLEngineResult result)
+    private void emitPlainData(SSLEngineResult result)
     {
         if (result.bytesProduced() > 0)
         {
@@ -149,7 +149,6 @@ public class Worker
         data.position(result.bytesConsumed());
         data.compact();
     }
-
 
 
 }
