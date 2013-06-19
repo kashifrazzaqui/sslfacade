@@ -1,6 +1,6 @@
 package prj.sslfacade;
 
-public interface TaskHandler
+public interface ITaskHandler
 {
     /*
     In order to continue handshakes after tasks are processed the

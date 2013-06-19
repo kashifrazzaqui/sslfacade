@@ -22,34 +22,9 @@ public class Worker
         _engine.beginHandshake();
     }
 
-    public void loadUnwrapPayload(ByteBuffer data)
-    {
-        _buffers.prepareForUnwrap(data);
-    }
-
     public Runnable getDelegatedTask()
     {
         return _engine.getDelegatedTask();
-    }
-
-    public void handleBufferOverflow(BufferType src, BufferType dest)
-    {
-        _buffers.prepareRetrial(src, dest);
-        _buffers.grow(dest);
-    }
-
-    private SSLEngineResult doWrap() throws SSLException
-    {
-        ByteBuffer plainText = _buffers.get(BufferType.OUT_PLAIN);
-        ByteBuffer cipherText = _buffers.get(BufferType.OUT_CIPHER);
-        return _engine.wrap(plainText, cipherText);
-    }
-
-    private SSLEngineResult doUnwrap() throws SSLException
-    {
-        ByteBuffer cipherText = _buffers.get(BufferType.IN_CIPHER);
-        ByteBuffer plainText = _buffers.get(BufferType.IN_PLAIN);
-        return _engine.unwrap(cipherText, plainText);
     }
 
     public SSLEngineResult wrap(ByteBuffer plainData) throws SSLException
@@ -116,6 +91,8 @@ public class Worker
         return _engine.getHandshakeStatus();
     }
 
+    /* Private */
+
     private void emitWrappedData(SSLEngineResult result)
     {
         if (result.bytesProduced() > 0)
@@ -135,7 +112,20 @@ public class Worker
 
     }
 
-    /* Private */
+    private SSLEngineResult doWrap() throws SSLException
+    {
+        ByteBuffer plainText = _buffers.get(BufferType.OUT_PLAIN);
+        ByteBuffer cipherText = _buffers.get(BufferType.OUT_CIPHER);
+        return _engine.wrap(plainText, cipherText);
+    }
+
+    private SSLEngineResult doUnwrap() throws SSLException
+    {
+        ByteBuffer cipherText = _buffers.get(BufferType.IN_CIPHER);
+        ByteBuffer plainText = _buffers.get(BufferType.IN_PLAIN);
+        return _engine.unwrap(cipherText, plainText);
+    }
+
 
     private ByteBuffer makeExternalBuffer(ByteBuffer internalBuffer)
     {

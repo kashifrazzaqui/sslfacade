@@ -1,6 +1,6 @@
 package prj.sslfacade;
 
-public class DefaultTaskHandler implements TaskHandler
+public class DefaultITaskHandler implements ITaskHandler
 {
     @Override
     public void process(Tasks tasks)
