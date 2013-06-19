@@ -6,17 +6,20 @@ import java.nio.ByteBuffer;
 public class Buffers
 {
     /*
-     Buffers is a simple abstraction that creates the four ByteBuffers
-     required to operate an SSLEngine. One way to look at the role of these
-     buffers is that two of these buffers are used to process incoming data
-     and the other two are used to process outgoing data. Another way to look
-     at this is to say that two buffers represent the host application and two
-     represent the peer application. The Java SSLEngine documentation calls
-     these buffers application and network buffers and names them and refers
-     to them variously but most commonly as myAppData, myNetData,
-     peerAppData and peerNetData. I have used these same names for the private
-     fields in this class so that the reader is able to associate them to the
-     Java provided documentation with ease. For publically visible
+     Buffers is a simple abstraction that encapsulates the 4 SSL
+     buffers and an unwrap caching buffer. The unwrap caching buffer is
+     required to cache previously recevied partial TLS packet which could not
+     be unwrapped.
+     The four ByteBuffers required to operate an SSLEngine. One way to look
+     at the role of these buffers is that two of these buffers are used to
+     process incoming data and the other two are used to process outgoing data.
+     Another way to look at this is to say that two buffers represent the
+     host application and two represent the peer application. The Java
+     SSLEngine documentation calls these buffers application and network
+     buffers and refers to them variously but most commonly as myAppData,
+     myNetData, peerAppData and peerNetData. I have used these same names for
+     the private fields in this class so that the reader is able to associate
+     them to the Java provided documentation with ease. For publically visible
      contracts, I felt better names were possible and have defined them
      in an enum called BufferType.
 

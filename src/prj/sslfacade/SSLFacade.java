@@ -45,38 +45,23 @@ public class SSLFacade
         _worker.setSSLListener(l);
     }
 
-    public void continueHandshake(ByteBuffer data) throws IOException, InsufficentUnwrapData
-    {
-        _handshaker.carryOn(data);
-    }
-
     public boolean isHandshakeCompleted()
     {
         return _handshaker == null || _handshaker.isFinished();
     }
 
-    public void encrypt(ByteBuffer plainData) throws HandshakeNotCompleted,
-            SSLException
+    public void encrypt(ByteBuffer plainData) throws SSLException
     {
-        checkHandshake();
         _worker.wrap(plainData);
     }
 
 
-    public void decrypt(ByteBuffer encryptedData) throws HandshakeNotCompleted, SSLException
+    public void decrypt(ByteBuffer encryptedData) throws SSLException
     {
-        checkHandshake();
         _worker.unwrap(encryptedData);
     }
 
     /* Privates */
-    private void checkHandshake() throws HandshakeNotCompleted
-    {
-        if (!isHandshakeCompleted())
-        {
-            throw new HandshakeNotCompleted();
-        }
-    }
 
     private void attachCompletionListener()
     {

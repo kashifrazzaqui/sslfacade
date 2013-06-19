@@ -110,7 +110,7 @@ public class Handshaker
         return _worker.getHandshakeStatus();
     }
 
-    public void processSSLEngineResult(SSLEngineResult result, SSLEngineResult.HandshakeStatus hs) throws IOException, InsufficentUnwrapData
+    private void processSSLEngineResult(SSLEngineResult result, SSLEngineResult.HandshakeStatus hs) throws IOException, InsufficentUnwrapData
     {
         switch (result.getStatus())
         {
