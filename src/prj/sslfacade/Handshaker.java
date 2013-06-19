@@ -3,26 +3,24 @@ package prj.sslfacade;
 import javax.net.ssl.SSLEngineResult;
 import java.io.IOException;
 
-import static javax.net.ssl.SSLEngineResult.HandshakeStatus;
-
 public class Handshaker
 {
     /*
          The purpose of this class is to conduct a SSL handshake. To do this it
          requires a SSLEngine as a provider of SSL knowhow. Byte buffers that are
          required by the SSLEngine to execute its wrap and unwrap methods. And a
-         TaskHandler callback that is used to delegate the responsibility of
+         ITaskHandler callback that is used to delegate the responsibility of
          executing long-running/IO tasks to the host application. By providing a
-         TaskHandler the host application gains the flexibility of executing
+         ITaskHandler the host application gains the flexibility of executing
          these tasks in compliance with its own compute/IO strategies.
          */
 
-    private final TaskHandler _taskHandler;
+    private final ITaskHandler _taskHandler;
     private final Worker _worker;
     private boolean _finished;
     private HandshakeCompletedListener _hscl;
 
-    public Handshaker(Worker worker, TaskHandler taskHandler)
+    public Handshaker(Worker worker, ITaskHandler taskHandler)
     {
         _worker = worker;
         _taskHandler = taskHandler;
@@ -60,7 +58,7 @@ public class Handshaker
     /* Privates */
     private void shakehands() throws IOException
     {
-        switch (getHandshakeStatus())
+        switch (_worker.getHandshakeStatus())
         {
             case NOT_HANDSHAKING:
                 //TODO: Log this
@@ -69,7 +67,7 @@ public class Handshaker
                 handshakeFinished();
                 break;
             case NEED_TASK:
-                _taskHandler.process(new Tasks(_worker));
+                _taskHandler.process(new Tasks(_worker, this));
                 break;
             case NEED_WRAP:
                 SSLEngineResult w_result = _worker.wrap(null);
@@ -86,8 +84,4 @@ public class Handshaker
         _hscl.onComplete();
     }
 
-    private HandshakeStatus getHandshakeStatus()
-    {
-        return _worker.getHandshakeStatus();
-    }
 }
