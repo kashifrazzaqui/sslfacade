@@ -56,7 +56,6 @@ class Worker
             case OK:
                 break;
             case CLOSED:
-                //TODO
                 break;
         }
         return result;
@@ -83,7 +82,6 @@ class Worker
                 _buffers.clearCache();
                 break;
             case CLOSED:
-                //TODO
                 break;
         }
         return result;
@@ -144,4 +142,25 @@ class Worker
     }
 
 
+    void close(boolean properly)
+    {
+        _engine.closeOutbound();
+        try
+        {
+            if (properly)
+            {
+                wrap(null); //sends a TLS close_notify alert
+            }
+            _engine.closeInbound();
+        }
+        catch (SSLException ignore)
+        {
+        }
+
+    }
+
+    boolean isCloseCompleted()
+    {
+        return _engine.isOutboundDone();
+    }
 }
