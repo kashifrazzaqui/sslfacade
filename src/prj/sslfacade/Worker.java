@@ -7,9 +7,14 @@ import java.nio.ByteBuffer;
 
 class Worker
 {
+    /*  Uses the SSLEngine and Buffers to perform wrap/unwrap operations.
+    Also, provides access to SSLEngine ops for handshake
+    */
+
     private final SSLEngine _engine;
     private final Buffers _buffers;
     private ISSLListener _sslListener;
+
 
     public Worker(SSLEngine engine, Buffers buffers)
     {
@@ -21,6 +26,12 @@ class Worker
     {
         _engine.beginHandshake();
     }
+
+    SSLEngineResult.HandshakeStatus getHandshakeStatus()
+    {
+        return _engine.getHandshakeStatus();
+    }
+
 
     Runnable getDelegatedTask()
     {
@@ -81,11 +92,6 @@ class Worker
     void setSSLListener(ISSLListener SSLListener)
     {
         this._sslListener = SSLListener;
-    }
-
-    SSLEngineResult.HandshakeStatus getHandshakeStatus()
-    {
-        return _engine.getHandshakeStatus();
     }
 
     /* Private */
