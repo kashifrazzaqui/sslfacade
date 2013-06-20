@@ -59,6 +59,7 @@ class Handshaker
         switch (_worker.getHandshakeStatus())
         {
             case NOT_HANDSHAKING:
+                System.out.println("Not handshaking!");
                 //TODO: Log this
                 break;
             case FINISHED:

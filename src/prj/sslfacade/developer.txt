@@ -58,6 +58,3 @@ A. The remaining unconsumed input will be stored seprately and appended
 before the next unwrap call. Care must be taken to ensure that no
 buffer overflow scenarios occur.
 
-
-//TODO: DRY check, OOP check, minimalistic check, doc check
-//TODO: Logging
