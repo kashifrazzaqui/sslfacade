@@ -6,7 +6,6 @@ tasks.xml
 local.properties
 *.java.orig
 gen/
-inspectionProfiles/
 .idea/dictionaries
 .idea/scopes/
 .idea/codeStyleSettings.xml
