@@ -5,11 +5,11 @@ import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
 import java.nio.ByteBuffer;
 
-public class Worker
+class Worker
 {
     private final SSLEngine _engine;
     private final Buffers _buffers;
-    private SSLListener _sslListener;
+    private ISSLListener _sslListener;
 
     public Worker(SSLEngine engine, Buffers buffers)
     {
@@ -17,19 +17,18 @@ public class Worker
         _buffers = buffers;
     }
 
-    public void beginHandshake() throws SSLException
+    void beginHandshake() throws SSLException
     {
         _engine.beginHandshake();
     }
 
-    public Runnable getDelegatedTask()
+    Runnable getDelegatedTask()
     {
         return _engine.getDelegatedTask();
     }
 
-    public SSLEngineResult wrap(ByteBuffer plainData) throws SSLException
+    SSLEngineResult wrap(ByteBuffer plainData) throws SSLException
     {
-        //TODO: OOP-able?
         _buffers.prepareForWrap(plainData);
         SSLEngineResult result = doWrap();
         emitWrappedData(result);
@@ -52,10 +51,8 @@ public class Worker
         return result;
     }
 
-    public SSLEngineResult unwrap(ByteBuffer encryptedData) throws SSLException
+    SSLEngineResult unwrap(ByteBuffer encryptedData) throws SSLException
     {
-        //TODO: OOP-able?
-        encryptedData = _buffers.prependCached(encryptedData);
         _buffers.prepareForUnwrap(encryptedData);
         SSLEngineResult result = doUnwrap();
         emitPlainData(result);
@@ -81,12 +78,12 @@ public class Worker
         return result;
     }
 
-    public void setSSLListener(SSLListener SSLListener)
+    void setSSLListener(ISSLListener SSLListener)
     {
         this._sslListener = SSLListener;
     }
 
-    public SSLEngineResult.HandshakeStatus getHandshakeStatus()
+    SSLEngineResult.HandshakeStatus getHandshakeStatus()
     {
         return _engine.getHandshakeStatus();
     }

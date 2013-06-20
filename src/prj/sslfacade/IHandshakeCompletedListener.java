@@ -1,6 +1,6 @@
 package prj.sslfacade;
 
-public interface HandshakeCompletedListener
+public interface IHandshakeCompletedListener
 {
     public void onComplete();
 }

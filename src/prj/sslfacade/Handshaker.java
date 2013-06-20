@@ -1,9 +1,8 @@
 package prj.sslfacade;
 
-import javax.net.ssl.SSLEngineResult;
 import java.io.IOException;
 
-public class Handshaker
+class Handshaker
 {
     /*
          The purpose of this class is to conduct a SSL handshake. To do this it
@@ -18,38 +17,37 @@ public class Handshaker
     private final ITaskHandler _taskHandler;
     private final Worker _worker;
     private boolean _finished;
-    private HandshakeCompletedListener _hscl;
+    private IHandshakeCompletedListener _hscl;
 
     public Handshaker(Worker worker, ITaskHandler taskHandler)
     {
         _worker = worker;
         _taskHandler = taskHandler;
         _finished = false;
-        _hscl = null;
     }
 
-    public void begin() throws IOException
+    void begin() throws IOException
     {
         _worker.beginHandshake();
         shakehands();
     }
 
-    public void carryOn() throws IOException
+    void carryOn() throws IOException
     {
         shakehands();
     }
 
-    public void addCompletedListener(HandshakeCompletedListener hscl)
+    void addCompletedListener(IHandshakeCompletedListener hscl)
     {
         _hscl = hscl;
     }
 
-    public void removeCompletedListener(HandshakeCompletedListener hscl)
+    void removeCompletedListener(IHandshakeCompletedListener hscl)
     {
         _hscl = hscl;
     }
 
-    public boolean isFinished()
+    boolean isFinished()
     {
         return _finished;
     }
@@ -70,7 +68,7 @@ public class Handshaker
                 _taskHandler.process(new Tasks(_worker, this));
                 break;
             case NEED_WRAP:
-                SSLEngineResult w_result = _worker.wrap(null);
+                _worker.wrap(null);
                 shakehands();
                 break;
             case NEED_UNWRAP:

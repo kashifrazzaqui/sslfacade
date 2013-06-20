@@ -3,7 +3,7 @@ package prj.sslfacade;
 import javax.net.ssl.SSLSession;
 import java.nio.ByteBuffer;
 
-public class Buffers
+class Buffers
 {
     /*
      Buffers is a simple abstraction that encapsulates the 4 SSL
@@ -41,7 +41,7 @@ public class Buffers
     private ByteBuffer _myApp;
     private ByteBuffer _peerNet;
     private ByteBuffer _myNet;
-    private AppendableBuffer _unwrapCache;
+    private final AppendableBuffer _unwrapCache;
     private final SSLSession _session;
 
     public Buffers(SSLSession session)
@@ -55,7 +55,7 @@ public class Buffers
         _unwrapCache = new AppendableBuffer();
     }
 
-    public ByteBuffer get(BufferType t)
+    ByteBuffer get(BufferType t)
     {
         ByteBuffer result = null;
         switch (t)
@@ -76,7 +76,7 @@ public class Buffers
         return result;
     }
 
-    public void grow(BufferType t)
+    void grow(BufferType t)
     {
         /* Grows buffer to recommended SSL sizes */
         switch (t)
@@ -98,7 +98,7 @@ public class Buffers
     }
 
 
-    public ByteBuffer grow(BufferType b, int recommendedBufferSize)
+    ByteBuffer grow(BufferType b, int recommendedBufferSize)
     {
         /*
         guaranteed to grow the buffer to the minimum recommended size or
@@ -113,14 +113,15 @@ public class Buffers
         return newBuffer;
     }
 
-    public void copy(ByteBuffer from, ByteBuffer to)
+    void copy(ByteBuffer from, ByteBuffer to)
     {
         from.rewind();
         to.put(from);
     }
 
-    public void prepareForUnwrap(ByteBuffer data)
+    void prepareForUnwrap(ByteBuffer data)
     {
+        data = prependCached(data);
         clear(BufferType.IN_CIPHER, BufferType.IN_PLAIN);
         if (data != null)
         {
@@ -129,7 +130,7 @@ public class Buffers
         }
     }
 
-    public void prepareForWrap(ByteBuffer data)
+    void prepareForWrap(ByteBuffer data)
     {
         //Avoid buffer overflow when loading plain data and clear buffers
         clear(BufferType.OUT_PLAIN, BufferType.OUT_CIPHER);
@@ -142,17 +143,17 @@ public class Buffers
 
     /* AppendableBuffer - Unwrap cache ops */
 
-    public ByteBuffer prependCached(ByteBuffer data)
+    ByteBuffer prependCached(ByteBuffer data)
     {
         return _unwrapCache.append(data);
     }
 
-    public void cache(ByteBuffer data)
+    void cache(ByteBuffer data)
     {
         _unwrapCache.set(data);
     }
 
-    public void clearCache()
+    void clearCache()
     {
         _unwrapCache.clear();
     }

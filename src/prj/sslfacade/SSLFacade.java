@@ -9,14 +9,14 @@ import java.nio.ByteBuffer;
 public class SSLFacade implements ISSLFacade
 {
     private Handshaker _handshaker;
-    private HandshakeCompletedListener _hcl;
+    private IHandshakeCompletedListener _hcl;
     private final Worker _worker;
 
     public SSLFacade(SSLContext context, boolean client,
                      boolean clientAuthRequired, ITaskHandler taskHandler)
     {
         //Currently there is no support for SSL session reuse,
-        // so no need to take a peerhost or port from the host application
+        // so no need to take a peerHost or port from the host application
         SSLEngine engine = makeSSLEngine(context, client, clientAuthRequired);
         Buffers buffers = new Buffers(engine.getSession());
         _worker = new Worker(engine, buffers);
@@ -24,13 +24,13 @@ public class SSLFacade implements ISSLFacade
     }
 
     @Override
-    public void setHandshakeCompletedListener(HandshakeCompletedListener hcl)
+    public void setHandshakeCompletedListener(IHandshakeCompletedListener hcl)
     {
         _hcl = hcl;
     }
 
     @Override
-    public void setSSLListener(SSLListener l)
+    public void setSSLListener(ISSLListener l)
     {
         _worker.setSSLListener(l);
     }
@@ -45,7 +45,7 @@ public class SSLFacade implements ISSLFacade
     @Override
     public boolean isHandshakeCompleted()
     {
-        return _handshaker == null || _handshaker.isFinished();
+        return (_handshaker == null) || _handshaker.isFinished();
     }
 
     @Override
@@ -69,7 +69,7 @@ public class SSLFacade implements ISSLFacade
 
     private void attachCompletionListener()
     {
-        _handshaker.addCompletedListener(new HandshakeCompletedListener()
+        _handshaker.addCompletedListener(new IHandshakeCompletedListener()
         {
             @Override
             public void onComplete()

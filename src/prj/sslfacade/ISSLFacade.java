@@ -6,9 +6,9 @@ import java.nio.ByteBuffer;
 
 public interface ISSLFacade
 {
-    void setHandshakeCompletedListener(HandshakeCompletedListener hcl);
+    void setHandshakeCompletedListener(IHandshakeCompletedListener hcl);
 
-    void setSSLListener(SSLListener l);
+    void setSSLListener(ISSLListener l);
 
     void beginHandshake() throws IOException;
 

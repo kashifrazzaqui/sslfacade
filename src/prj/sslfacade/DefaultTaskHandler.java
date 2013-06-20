@@ -2,10 +2,10 @@ package prj.sslfacade;
 
 import java.io.IOException;
 
-public class DefaultITaskHandler implements ITaskHandler
+public class DefaultTaskHandler implements ITaskHandler
 {
     @Override
-    public void process(Tasks tasks) throws IOException
+    public void process(ITasks tasks) throws IOException
     {
         Runnable task;
         while( (task = tasks.next()) != null)

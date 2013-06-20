@@ -2,7 +2,7 @@ package prj.sslfacade;
 
 import java.nio.ByteBuffer;
 
-public class AppendableBuffer
+class AppendableBuffer
 {
     private ByteBuffer _;
 
