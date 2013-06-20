@@ -115,18 +115,18 @@ class Buffers
 
     void copy(ByteBuffer from, ByteBuffer to)
     {
-        from.rewind();
+//        from.flip(); //TODO: should not be here, but with callee
         to.put(from);
+        to.flip();
     }
 
     void prepareForUnwrap(ByteBuffer data)
     {
-        data = prependCached(data);
         clear(BufferType.IN_CIPHER, BufferType.IN_PLAIN);
         if (data != null)
         {
-            growIfNecessary(BufferType.IN_CIPHER, data.capacity());
-            get(BufferType.IN_CIPHER).put(data);
+            growIfNecessary(BufferType.IN_CIPHER, data.limit());
+            copy(data, get(BufferType.IN_CIPHER));
         }
     }
 
@@ -137,7 +137,7 @@ class Buffers
         if (data != null)
         {
             growIfNecessary(BufferType.OUT_PLAIN, data.capacity());
-            get(BufferType.OUT_PLAIN).put(data);
+            copy(data, get(BufferType.OUT_PLAIN));
         }
     }
 
@@ -145,18 +145,36 @@ class Buffers
 
     ByteBuffer prependCached(ByteBuffer data)
     {
-        return _unwrapCache.append(data);
+        if (data == null)
+        {
+            return _unwrapCache.get();
+        }
+        else
+        {
+            ByteBuffer result = _unwrapCache.append(data);
+            result.rewind();
+            return result;
+        }
     }
 
     void cache(ByteBuffer data)
     {
-        _unwrapCache.set(data);
+        if (data != null)
+        {
+            _unwrapCache.set(data);
+        }
     }
 
     void clearCache()
     {
         _unwrapCache.clear();
     }
+
+    boolean isCacheEmpty()
+    {
+        return !_unwrapCache.hasRemaining();
+    }
+
 
     /* private */
 
@@ -214,4 +232,14 @@ class Buffers
     }
 
 
+    public ByteBuffer slice(ByteBuffer data)
+    {
+        if (data.hasRemaining())
+        {
+            byte[] slice = new byte[data.remaining()];
+            data.get(slice, 0, data.remaining());
+            return ByteBuffer.wrap(slice);
+        }
+        return null;
+    }
 }

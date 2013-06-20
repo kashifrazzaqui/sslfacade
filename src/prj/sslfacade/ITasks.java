@@ -1,10 +1,10 @@
 package prj.sslfacade;
 
-import java.io.IOException;
+import javax.net.ssl.SSLException;
 
 public interface ITasks
 {
     Runnable next();
 
-    void done() throws IOException;
+    void done() throws SSLException;
 }

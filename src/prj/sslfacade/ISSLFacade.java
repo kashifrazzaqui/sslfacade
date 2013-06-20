@@ -16,7 +16,7 @@ public interface ISSLFacade
 
     void encrypt(ByteBuffer plainData) throws SSLException;
 
-    void decrypt(ByteBuffer encryptedData) throws IOException;
+    void decrypt(ByteBuffer encryptedData) throws SSLException;
 
     void close();
 

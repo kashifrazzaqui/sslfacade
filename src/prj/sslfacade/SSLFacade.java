@@ -3,7 +3,6 @@ package prj.sslfacade;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class SSLFacade implements ISSLFacade
@@ -36,7 +35,7 @@ public class SSLFacade implements ISSLFacade
     }
 
     @Override
-    public void beginHandshake() throws IOException
+    public void beginHandshake() throws SSLException
     {
         attachCompletionListener();
         _handshaker.begin();
@@ -56,7 +55,7 @@ public class SSLFacade implements ISSLFacade
 
 
     @Override
-    public void decrypt(ByteBuffer encryptedData) throws IOException
+    public void decrypt(ByteBuffer encryptedData) throws SSLException
     {
         _worker.unwrap(encryptedData);
         if (!isHandshakeCompleted())

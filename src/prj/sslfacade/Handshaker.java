@@ -1,6 +1,7 @@
 package prj.sslfacade;
 
-import java.io.IOException;
+import javax.net.ssl.SSLEngineResult;
+import javax.net.ssl.SSLException;
 
 class Handshaker
 {
@@ -26,13 +27,13 @@ class Handshaker
         _finished = false;
     }
 
-    void begin() throws IOException
+    void begin() throws SSLException
     {
         _worker.beginHandshake();
         shakehands();
     }
 
-    void carryOn() throws IOException
+    void carryOn() throws SSLException
     {
         shakehands();
     }
@@ -54,13 +55,13 @@ class Handshaker
 
 
     /* Privates */
-    private void shakehands() throws IOException
+    private void shakehands() throws SSLException
     {
+        System.out.println("HS: " + _worker.getHandshakeStatus());
         switch (_worker.getHandshakeStatus())
         {
             case NOT_HANDSHAKING:
-                System.out.println("Not handshaking!");
-                //TODO: Log this
+                /* Occurs after handshake is over */
                 break;
             case FINISHED:
                 handshakeFinished();
@@ -69,10 +70,28 @@ class Handshaker
                 _taskHandler.process(new Tasks(_worker, this));
                 break;
             case NEED_WRAP:
-                _worker.wrap(null);
-                shakehands();
+                SSLEngineResult w_result = _worker.wrap(null);
+                System.out.println("DBG: " + w_result);
+                if (w_result.getHandshakeStatus().equals(SSLEngineResult
+                        .HandshakeStatus.FINISHED))
+                {
+                    handshakeFinished();
+                }
+                else
+                {
+                    shakehands();
+                }
                 break;
             case NEED_UNWRAP:
+                System.out.println("Shakehands.NEED_UNWRAP: " + _worker.pendingUnwrap());
+                if (_worker.pendingUnwrap())
+                {
+                    SSLEngineResult u_result = _worker.unwrap(null);
+                    if (u_result.getStatus().equals(SSLEngineResult.Status.OK))
+                    {
+                        shakehands();
+                    }
+                }
                 break;
         }
     }

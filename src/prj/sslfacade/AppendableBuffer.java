@@ -20,23 +20,24 @@ class AppendableBuffer
 
     public void set(ByteBuffer data)
     {
-        _ = ByteBuffer.allocate(data.limit());
-        _.put(data);
+        if (data.hasRemaining())
+        {
+            _ = ByteBuffer.allocate(data.remaining());
+            _.put(data);
+            _.rewind();
+        }
     }
 
     public void clear()
     {
-        if (notNull())
-        {
-            _.clear();
-        }
+        _ = null;
     }
 
     /* private */
 
     private int calculateSize(ByteBuffer data)
     {
-        int result = data.capacity();
+        int result = data.limit();
         if (notNull())
         {
             result += _.capacity();
@@ -49,4 +50,17 @@ class AppendableBuffer
         return _ != null;
     }
 
+    public boolean hasRemaining()
+    {
+        if (notNull())
+        {
+            return _.hasRemaining();
+        }
+        return false;
+    }
+
+    public ByteBuffer get()
+    {
+        return _;
+    }
 }

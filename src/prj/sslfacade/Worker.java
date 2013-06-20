@@ -43,15 +43,18 @@ class Worker
         _buffers.prepareForWrap(plainData);
         SSLEngineResult result = doWrap();
         emitWrappedData(result);
-
         switch (result.getStatus())
         {
             case BUFFER_UNDERFLOW:
                 throw new RuntimeException("BUFFER_UNDERFLOW while wrapping!");
             case BUFFER_OVERFLOW:
                 _buffers.grow(BufferType.OUT_CIPHER);
-                compact(plainData, result);
-                wrap(plainData);
+                if (plainData.hasRemaining())
+                {
+                    plainData.position(result.bytesConsumed());
+                    ByteBuffer remainingData = _buffers.slice(plainData);
+                    wrap(remainingData);
+                }
                 break;
             case OK:
                 break;
@@ -63,23 +66,40 @@ class Worker
 
     SSLEngineResult unwrap(ByteBuffer encryptedData) throws SSLException
     {
-        _buffers.prepareForUnwrap(encryptedData);
+        ByteBuffer allEncryptedData = _buffers.prependCached(encryptedData);
+        _buffers.prepareForUnwrap(allEncryptedData);
         SSLEngineResult result = doUnwrap();
+        allEncryptedData.position(result.bytesConsumed());
+        ByteBuffer unprocessedEncryptedData = _buffers.slice(allEncryptedData);
         emitPlainData(result);
+
 
         switch (result.getStatus())
         {
             case BUFFER_UNDERFLOW:
-                compact(encryptedData, result);
-                _buffers.cache(encryptedData);
+                _buffers.cache(unprocessedEncryptedData);
                 break;
             case BUFFER_OVERFLOW:
                 _buffers.grow(BufferType.IN_PLAIN);
-                compact(encryptedData, result);
-                unwrap(encryptedData);
+                if (unprocessedEncryptedData != null)
+                {
+                    unwrap(unprocessedEncryptedData);
+                }
+                else
+                {
+                    System.out.println("!!!! Worker.unwrap had " +
+                            "buffer_overflow but all data was consumed!!");
+                }
                 break;
             case OK:
-                _buffers.clearCache();
+                if (unprocessedEncryptedData == null)
+                {
+                    _buffers.clearCache();
+                }
+                else
+                {
+                    _buffers.cache(unprocessedEncryptedData);
+                }
                 break;
             case CLOSED:
                 break;
@@ -130,17 +150,11 @@ class Worker
 
     private ByteBuffer makeExternalBuffer(ByteBuffer internalBuffer)
     {
-        ByteBuffer newBuffer = ByteBuffer.allocate(internalBuffer.limit());
+        ByteBuffer newBuffer = ByteBuffer.allocate(internalBuffer.position());
+        internalBuffer.flip();
         _buffers.copy(internalBuffer, newBuffer);
         return newBuffer;
     }
-
-    private void compact(ByteBuffer data, SSLEngineResult result)
-    {
-        data.position(result.bytesConsumed());
-        data.compact();
-    }
-
 
     void close(boolean properly)
     {
@@ -162,5 +176,10 @@ class Worker
     boolean isCloseCompleted()
     {
         return _engine.isOutboundDone();
+    }
+
+    public boolean pendingUnwrap()
+    {
+        return !_buffers.isCacheEmpty();
     }
 }

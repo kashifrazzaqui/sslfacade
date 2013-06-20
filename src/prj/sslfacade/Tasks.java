@@ -1,6 +1,6 @@
 package prj.sslfacade;
 
-import java.io.IOException;
+import javax.net.ssl.SSLException;
 
 public class Tasks implements ITasks
 {
@@ -20,7 +20,7 @@ public class Tasks implements ITasks
     }
 
     @Override
-    public void done() throws IOException
+    public void done() throws SSLException
     {
         _hs.carryOn();
     }
