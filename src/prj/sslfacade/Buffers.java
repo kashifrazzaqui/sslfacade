@@ -55,12 +55,6 @@ public class Buffers
         _unwrapCache = new AppendableBuffer();
     }
 
-    public void resetAllBufferSizes()
-    {
-        //TODO: Use this to clear evergrowing buffers
-        allocate();
-    }
-
     public ByteBuffer get(BufferType t)
     {
         ByteBuffer result = null;
@@ -82,34 +76,13 @@ public class Buffers
         return result;
     }
 
-    public void assign(BufferType t, ByteBuffer b)
-    {
-        switch (t)
-        {
-
-            case IN_PLAIN:
-                _peerApp = b;
-                break;
-            case IN_CIPHER:
-                _peerNet = b;
-                break;
-            case OUT_PLAIN:
-                _myApp = b;
-                break;
-            case OUT_CIPHER:
-                _myNet = b;
-                break;
-        }
-    }
-
     public void grow(BufferType t)
     {
-        //TODO
+        /* Grows buffer to recommended SSL sizes */
         switch (t)
         {
             case IN_PLAIN:
-                assign(t, grow(t,
-                        _session.getApplicationBufferSize()));
+                assign(t, grow(t, _session.getApplicationBufferSize()));
                 break;
             case IN_CIPHER:
                 assign(t, grow(t, _session.getPacketBufferSize()));
@@ -124,22 +97,6 @@ public class Buffers
 
     }
 
-    public void resetSize(BufferType t, int size)
-    {
-        ByteBuffer newBuffer = ByteBuffer.allocate(size);
-        copy(get(t), newBuffer);
-        assign(t, newBuffer);
-    }
-
-    private void growIfNecessary(BufferType t, int size)
-    {
-        //grow if not enough space
-        ByteBuffer b = get(t);
-        if (b.capacity() < size)
-        {
-            resetSize(t, size);
-        }
-    }
 
     public ByteBuffer grow(BufferType b, int recommendedBufferSize)
     {
@@ -160,16 +117,6 @@ public class Buffers
     {
         from.rewind();
         to.put(from);
-    }
-
-    private void allocate()
-    {
-        int applicationBufferSize = _session.getApplicationBufferSize();
-        int packetBufferSize = _session.getPacketBufferSize();
-        _peerApp = ByteBuffer.allocate(applicationBufferSize);
-        _myApp = ByteBuffer.allocate(applicationBufferSize);
-        _peerNet = ByteBuffer.allocate(packetBufferSize);
-        _myNet = ByteBuffer.allocate(packetBufferSize);
     }
 
     public void prepareForUnwrap(ByteBuffer data)
@@ -193,17 +140,7 @@ public class Buffers
         }
     }
 
-    public void prepareRetrial(BufferType source, BufferType destination)
-    {
-        get(source).rewind();
-        get(destination).clear();
-    }
-
-    private void clear(BufferType source, BufferType destination)
-    {
-        get(source).clear();
-        get(destination).clear();
-    }
+    /* AppendableBuffer - Unwrap cache ops */
 
     public ByteBuffer prependCached(ByteBuffer data)
     {
@@ -219,4 +156,61 @@ public class Buffers
     {
         _unwrapCache.clear();
     }
+
+    /* private */
+
+    private void allocate()
+    {
+        int applicationBufferSize = _session.getApplicationBufferSize();
+        int packetBufferSize = _session.getPacketBufferSize();
+        _peerApp = ByteBuffer.allocate(applicationBufferSize);
+        _myApp = ByteBuffer.allocate(applicationBufferSize);
+        _peerNet = ByteBuffer.allocate(packetBufferSize);
+        _myNet = ByteBuffer.allocate(packetBufferSize);
+    }
+
+    private void clear(BufferType source, BufferType destination)
+    {
+        get(source).clear();
+        get(destination).clear();
+    }
+
+    private void assign(BufferType t, ByteBuffer b)
+    {
+        switch (t)
+        {
+
+            case IN_PLAIN:
+                _peerApp = b;
+                break;
+            case IN_CIPHER:
+                _peerNet = b;
+                break;
+            case OUT_PLAIN:
+                _myApp = b;
+                break;
+            case OUT_CIPHER:
+                _myNet = b;
+                break;
+        }
+    }
+
+    private void resetSize(BufferType t, int size)
+    {
+        ByteBuffer newBuffer = ByteBuffer.allocate(size);
+        copy(get(t), newBuffer);
+        assign(t, newBuffer);
+    }
+
+    private void growIfNecessary(BufferType t, int size)
+    {
+        //grow if not enough space
+        ByteBuffer b = get(t);
+        if (b.capacity() < size)
+        {
+            resetSize(t, size);
+        }
+    }
+
+
 }
