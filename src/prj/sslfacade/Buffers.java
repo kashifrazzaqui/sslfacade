@@ -9,7 +9,7 @@ class Buffers
      Buffers is a simple abstraction that encapsulates the 4 SSL
      buffers and an unwrap caching buffer.
 
-     The unwrap caching buffer is required to cache previously recevied
+     The unwrap caching buffer is required to cache previously received
      partial TLS packet which could not be unwrapped.
 
      The four ByteBuffers required to operate an SSLEngine. One way to look
@@ -100,24 +100,10 @@ class Buffers
 
     ByteBuffer grow(BufferType b, int recommendedBufferSize)
     {
-        /*
-        guaranteed to grow the buffer to the minimum recommended size or
-        more. If the buffer is at the recommended minimum size we could
-        still be facing repeated overflows because the host application
-        might misbehave or be incapable of draining the buffer in
-        an appropriate fashion - we expect the host application to fix this.
-        */
         ByteBuffer originalBuffer = get(b);
         ByteBuffer newBuffer = ByteBuffer.allocate(recommendedBufferSize);
-        copy(originalBuffer, newBuffer);
+        BufferUtils.copy(originalBuffer, newBuffer);
         return newBuffer;
-    }
-
-    void copy(ByteBuffer from, ByteBuffer to)
-    {
-//        from.flip(); //TODO: should not be here, but with callee
-        to.put(from);
-        to.flip();
     }
 
     void prepareForUnwrap(ByteBuffer data)
@@ -126,7 +112,7 @@ class Buffers
         if (data != null)
         {
             growIfNecessary(BufferType.IN_CIPHER, data.limit());
-            copy(data, get(BufferType.IN_CIPHER));
+            BufferUtils.copy(data, get(BufferType.IN_CIPHER));
         }
     }
 
@@ -137,7 +123,7 @@ class Buffers
         if (data != null)
         {
             growIfNecessary(BufferType.OUT_PLAIN, data.capacity());
-            copy(data, get(BufferType.OUT_PLAIN));
+            BufferUtils.copy(data, get(BufferType.OUT_PLAIN));
         }
     }
 
@@ -217,7 +203,7 @@ class Buffers
     private void resetSize(BufferType t, int size)
     {
         ByteBuffer newBuffer = ByteBuffer.allocate(size);
-        copy(get(t), newBuffer);
+        BufferUtils.copy(get(t), newBuffer);
         assign(t, newBuffer);
     }
 
@@ -229,17 +215,5 @@ class Buffers
         {
             resetSize(t, size);
         }
-    }
-
-
-    public ByteBuffer slice(ByteBuffer data)
-    {
-        if (data.hasRemaining())
-        {
-            byte[] slice = new byte[data.remaining()];
-            data.get(slice, 0, data.remaining());
-            return ByteBuffer.wrap(slice);
-        }
-        return null;
     }
 }

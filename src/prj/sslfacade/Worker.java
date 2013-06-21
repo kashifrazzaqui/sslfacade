@@ -52,7 +52,7 @@ class Worker
                 if (plainData.hasRemaining())
                 {
                     plainData.position(result.bytesConsumed());
-                    ByteBuffer remainingData = _buffers.slice(plainData);
+                    ByteBuffer remainingData = BufferUtils.slice(plainData);
                     wrap(remainingData);
                 }
                 break;
@@ -70,7 +70,7 @@ class Worker
         _buffers.prepareForUnwrap(allEncryptedData);
         SSLEngineResult result = doUnwrap();
         allEncryptedData.position(result.bytesConsumed());
-        ByteBuffer unprocessedEncryptedData = _buffers.slice(allEncryptedData);
+        ByteBuffer unprocessedEncryptedData = BufferUtils.slice(allEncryptedData);
         emitPlainData(result);
 
 
@@ -112,6 +112,32 @@ class Worker
         this._sslListener = SSLListener;
     }
 
+    void close(boolean properly)
+    {
+        _engine.closeOutbound();
+        try
+        {
+            if (properly)
+            {
+                wrap(null); //sends a TLS close_notify alert
+            }
+            _engine.closeInbound();
+        }
+        catch (SSLException ignore)
+        {
+        }
+
+    }
+
+    boolean isCloseCompleted()
+    {
+        return _engine.isOutboundDone();
+    }
+
+    public boolean pendingUnwrap()
+    {
+        return !_buffers.isCacheEmpty();
+    }
     /* Private */
 
     private void emitWrappedData(SSLEngineResult result)
@@ -148,38 +174,12 @@ class Worker
     }
 
 
-    private ByteBuffer makeExternalBuffer(ByteBuffer internalBuffer)
+    private static ByteBuffer makeExternalBuffer(ByteBuffer internalBuffer)
     {
         ByteBuffer newBuffer = ByteBuffer.allocate(internalBuffer.position());
         internalBuffer.flip();
-        _buffers.copy(internalBuffer, newBuffer);
+        BufferUtils.copy(internalBuffer, newBuffer);
         return newBuffer;
     }
 
-    void close(boolean properly)
-    {
-        _engine.closeOutbound();
-        try
-        {
-            if (properly)
-            {
-                wrap(null); //sends a TLS close_notify alert
-            }
-            _engine.closeInbound();
-        }
-        catch (SSLException ignore)
-        {
-        }
-
-    }
-
-    boolean isCloseCompleted()
-    {
-        return _engine.isOutboundDone();
-    }
-
-    public boolean pendingUnwrap()
-    {
-        return !_buffers.isCacheEmpty();
-    }
 }
