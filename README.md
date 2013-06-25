@@ -3,7 +3,7 @@ sslfacade
 
 ### Overview
 
-An attempt to make the usage of Java's SSLEngine easier, the SSLFacade provides an integrated, hopefully simple, api to interact with the Java SSLEngine.
+An attempt to make the use of Java's SSLEngine easier, the SSLFacade provides an integrated, hopefully simple, api to interact with the Java SSLEngine.
 
 The facade has two important listeners. The first for informing the host application of handshake completion and the other for emitting ciphered and plain data.
 
