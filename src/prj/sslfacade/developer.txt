@@ -1,3 +1,5 @@
+Just some thoughts...
+
 Q. How many SSLFacade objects per SSL transport
 A. One object per transport
 
@@ -17,7 +19,6 @@ Q. What should the return value of the unwrap call be?
 A. It should return plain data for all complete TLS packets and store previously unconsumed partial packets for further consumption later. The host application does not need to worry about how much data was not consumed.
 
 Q. Should the facade give a sync or async api for wrap ?
-
 A. The biggest issue with giving a sync api is that a TLS packet cannot be transported till all of the plaintext payload is wrapped,this may not be ideal for performance in some server environments. Because we seek not to define or limit IO/Compute patterns for the host application it is better to chose an async api
 
 Q. Should the facade give a sync or async api for unwrap?
