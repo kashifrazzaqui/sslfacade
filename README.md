@@ -67,6 +67,8 @@ Attach a SSLListener for getting results form encrypt/decrypt calls
         
 ```
 
+##### Receiving
+
 Once you have begun the handshake any data you receive on your transport needs to be fed to the ssl engine as such.
 
 ```java
@@ -75,6 +77,8 @@ ssl.decrypt(incomingPayload);
 During the handshake no data will be emitted via the SSLListener.onPlainData method. But data which is to be sent to the peer for purposes of handshake will be emitted via the SSLListener.onWrappedData method. These bytes should be sent to the SSL peer by the host application.
 
 After the handshake, if you receive any data and pass it to ssl.decrypt() you will get decrypted plain data via the SSLListener.onPlainData() method if the bytes you passed contain a full TLS record. If not, they will be cached for you and as you pass in the remaining data the equivalent plain text will be emitted. The host application just needs to call decrypt() on all incoming payload and wait for plain data on listeners with no additional management involved.
+
+##### Sending
 
 If there is any data you wish to send you must encrypt it first as such.
 
@@ -85,9 +89,8 @@ The result of this encryption will be available through SSLListener.onWrappedDat
 
 
 
+##### Not supported
 
-
-SSLFacade, at this point in time, does not support
 * SSL session resumption
 * Renegotiaion of handshake on an already existing session.
 * Multi-buffer scatter-gather wrap and unwrap operations.
