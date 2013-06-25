@@ -27,7 +27,6 @@ usually not be visible to the host application.
 
 
 Q. Should the async api of wrap take a callback each time or use one time set callback/listener?
-
 A. A separate callback for each wrap call is useful if the requestor wants to to know only about a specific wrap request not all wrap requests.  This is not a likely consumption pattern here and so a callback is not ideal.
 
 
