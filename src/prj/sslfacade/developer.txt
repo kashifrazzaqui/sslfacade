@@ -37,8 +37,6 @@ host application.
 
 
 Q. How will you manage unconsumed input from an unwrap?
-A. The remaining unconsumed input will be stored seprately and appended
-before the next unwrap call. Care must be taken to ensure that no
-buffer overflow scenarios occur.
+A. The remaining unconsumed input will be stored seprately and appended before the next unwrap call. Care must be taken to ensure that no buffer overflow scenarios occur.
 
 * SSL/TLS packet size is fixed at 16KB by TLS RFC and
