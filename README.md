@@ -99,3 +99,5 @@ The result of this encryption will be available through SSLListener.onWrappedDat
 
 If you have suggestions/requests, generate a pull request or drop me a message.
 
+*Note* This code has been tested but the test is not in this source tree, I will at somepoint include the tests here.
+
