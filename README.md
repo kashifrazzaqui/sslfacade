@@ -87,7 +87,19 @@ ssl.encrypt(data)
 ```
 The result of this encryption will be available through SSLListener.onWrappedData()
 
+##### Closing
 
+To close a SSL connection and send an SSL finish message use close()
+
+```java
+ssl.close()
+```
+
+To close a SSL connection without sending a SSL finish message or if transport is no longer available
+
+```java
+ssl.terminate()
+```
 
 ##### Not supported
 
