@@ -12,6 +12,10 @@ public class DefaultTaskHandler implements ITaskHandler
         {
             task.run();
         }
+
+        /* Must be called to signal to the SSLFacade that all tasks have
+        been completed and that the handshake process should resume
+         */
         tasks.done();
     }
 }
