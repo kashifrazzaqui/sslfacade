@@ -113,3 +113,5 @@ If you have suggestions/requests, generate a pull request or drop me a message.
 
 *Note that this code has been tested and used but the test is not in this source tree, I will at somepoint include the tests here*
 
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/kashifrazzaqui/sslfacade/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
