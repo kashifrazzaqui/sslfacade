@@ -112,3 +112,5 @@ ssl.terminate()
 If you have suggestions/requests, generate a pull request or drop me a message.
 
 *Note that this code has been tested and used but the test is not in this source tree, I will at somepoint include the tests here*
+
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/721d6f60a885788cfe268ae13d7c991e "githalytics.com")](http://githalytics.com/kashifrazzaqui/sslfacade)
