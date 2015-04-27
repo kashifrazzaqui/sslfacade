@@ -10,6 +10,8 @@ public interface ISSLFacade
 
     void setSSLListener(ISSLListener l);
 
+    void setCloseListener(ISessionClosedListener l);
+
     void beginHandshake() throws IOException;
 
     boolean isHandshakeCompleted();
