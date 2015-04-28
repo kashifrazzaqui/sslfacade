@@ -19,6 +19,7 @@ class Handshaker
     private final Worker _worker;
     private boolean _finished;
     private IHandshakeCompletedListener _hscl;
+    private ISessionClosedListener _sessionClosedListener;
 
     public Handshaker(Worker worker, ITaskHandler taskHandler)
     {
@@ -47,6 +48,10 @@ class Handshaker
     {
         _hscl = hscl;
     }
+    
+    void setSessionClosedListener(final ISessionClosedListener scl) {
+      this._sessionClosedListener = scl;
+    }
 
     boolean isFinished()
     {
@@ -57,7 +62,8 @@ class Handshaker
     /* Privates */
     private void shakehands() throws SSLException
     {
-        System.out.println("HS: " + _worker.getHandshakeStatus());
+      //TODO: remove system printouts
+        //System.out.println("HS: " + _worker.getHandshakeStatus());
         switch (_worker.getHandshakeStatus())
         {
             case NOT_HANDSHAKING:
@@ -72,6 +78,9 @@ class Handshaker
             case NEED_WRAP:
                 SSLEngineResult w_result = _worker.wrap(null);
                 System.out.println("DBG: " + w_result);
+                if (w_result.getStatus().equals(SSLEngineResult.Status.CLOSED) && _sessionClosedListener != null) {
+                  _sessionClosedListener.onSessionClosed();
+                }
                 if (w_result.getHandshakeStatus().equals(SSLEngineResult
                         .HandshakeStatus.FINISHED))
                 {
