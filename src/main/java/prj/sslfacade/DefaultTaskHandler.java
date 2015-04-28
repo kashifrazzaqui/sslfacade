@@ -8,7 +8,7 @@ public class DefaultTaskHandler implements ITaskHandler
     public void process(ITasks tasks) throws SSLException
     {
         Runnable task;
-        while( (task = tasks.next()) != null)
+        while ((task = tasks.next()) != null)
         {
             task.run();
         }
