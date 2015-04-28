@@ -165,13 +165,13 @@ public class SSLFacadeTest {
     //then
     Assertions.assertThat(clientNotifications)
             .hasSize(3)
-            .contains(END_OF_HANDSHAKE, HELLO_FROM_SERVER_1, HELLO_FROM_SERVER_2);
+            .containsExactly(END_OF_HANDSHAKE, HELLO_FROM_SERVER_1, HELLO_FROM_SERVER_2);
 
     Assertions.assertThat(serverNotifications)
             .hasSize(3)
             .containsExactly(HELLO_FROM_CLIENT_1, HELLO_FROM_CLIENT_2, END_OF_SESSION);
   }
-
+ 
   public ISSLListener crateListener(final String who, final ISSLFacade sslServer, final List<String> notificatons, final Semaphore sem) {
     return new ISSLListener() {
       @Override
@@ -179,8 +179,9 @@ public class SSLFacadeTest {
         try {
           log(who + ": pass data " + wrappedBytes);
           sslServer.decrypt(wrappedBytes);
+          log(who + ": data decrypted " + wrappedBytes);
         } catch (SSLException ex) {
-          log(who + ": Error while sending data to peer");
+          log(who + ": Error while sending data to peer;" + ex);
         }
       }
 
