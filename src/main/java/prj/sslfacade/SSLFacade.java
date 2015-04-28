@@ -10,7 +10,6 @@ public class SSLFacade implements ISSLFacade {
   private Handshaker _handshaker;
   private IHandshakeCompletedListener _hcl;
   private final Worker _worker;
-  private ISessionClosedListener _sessionClosedListener;
 
   public SSLFacade(SSLContext context, boolean client,
           boolean clientAuthRequired, ITaskHandler taskHandler) {
@@ -34,10 +33,7 @@ public class SSLFacade implements ISSLFacade {
 
   @Override
   public void setCloseListener(ISessionClosedListener l) {
-    this._sessionClosedListener = l;
-    if (_sessionClosedListener != null) {
-      _handshaker.setSessionClosedListener(_sessionClosedListener);
-    }    
+      _handshaker.setSessionClosedListener(l);  
   }
 
   @Override
