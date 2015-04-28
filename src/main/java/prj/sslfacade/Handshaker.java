@@ -48,9 +48,10 @@ class Handshaker
     {
         _hscl = hscl;
     }
-    
-    void setSessionClosedListener(final ISessionClosedListener scl) {
-      this._sessionClosedListener = scl;
+
+    void setSessionClosedListener(final ISessionClosedListener scl)
+    {
+        _sessionClosedListener = scl;
     }
 
     boolean isFinished()
@@ -62,8 +63,6 @@ class Handshaker
     /* Privates */
     private void shakehands() throws SSLException
     {
-      //TODO: remove system printouts
-        //System.out.println("HS: " + _worker.getHandshakeStatus());
         switch (_worker.getHandshakeStatus())
         {
             case NOT_HANDSHAKING:
@@ -77,9 +76,9 @@ class Handshaker
                 break;
             case NEED_WRAP:
                 SSLEngineResult w_result = _worker.wrap(null);
-                System.out.println("DBG: " + w_result);
-                if (w_result.getStatus().equals(SSLEngineResult.Status.CLOSED) && _sessionClosedListener != null) {
-                  _sessionClosedListener.onSessionClosed();
+                if (w_result.getStatus().equals(SSLEngineResult.Status.CLOSED) && null != _sessionClosedListener)
+                {
+                    _sessionClosedListener.onSessionClosed();
                 }
                 if (w_result.getHandshakeStatus().equals(SSLEngineResult
                         .HandshakeStatus.FINISHED))
@@ -92,7 +91,6 @@ class Handshaker
                 }
                 break;
             case NEED_UNWRAP:
-                System.out.println("Shakehands.NEED_UNWRAP: " + _worker.pendingUnwrap());
                 if (_worker.pendingUnwrap())
                 {
                     SSLEngineResult u_result = _worker.unwrap(null);

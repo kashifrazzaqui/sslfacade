@@ -113,7 +113,7 @@ class Worker
 
     void setSSLListener(ISSLListener SSLListener)
     {
-        this._sslListener = SSLListener;
+        _sslListener = SSLListener;
     }
 
     void close(boolean properly)

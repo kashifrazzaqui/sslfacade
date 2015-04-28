@@ -4,14 +4,14 @@ import java.nio.ByteBuffer;
 
 class AppendableBuffer
 {
-    private ByteBuffer _;
+    private ByteBuffer b;
 
     public ByteBuffer append(ByteBuffer data)
     {
         ByteBuffer nb = ByteBuffer.allocate(calculateSize(data));
         if (notNull())
         {
-            nb.put(_);
+            nb.put(b);
             clear();
         }
         nb.put(data);
@@ -22,15 +22,15 @@ class AppendableBuffer
     {
         if (data.hasRemaining())
         {
-            _ = ByteBuffer.allocate(data.remaining());
-            _.put(data);
-            _.rewind();
+            b = ByteBuffer.allocate(data.remaining());
+            b.put(data);
+            b.rewind();
         }
     }
 
     public void clear()
     {
-        _ = null;
+        b = null;
     }
 
     /* private */
@@ -40,27 +40,27 @@ class AppendableBuffer
         int result = data.limit();
         if (notNull())
         {
-            result += _.capacity();
+            result += b.capacity();
         }
         return result;
     }
 
     private boolean notNull()
     {
-        return _ != null;
+        return b != null;
     }
 
     public boolean hasRemaining()
     {
         if (notNull())
         {
-            return _.hasRemaining();
+            return b.hasRemaining();
         }
         return false;
     }
 
     public ByteBuffer get()
     {
-        return _;
+        return b;
     }
 }

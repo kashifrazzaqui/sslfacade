@@ -1,8 +1,9 @@
 package prj.sslfacade;
 
-/** Monitors end of session notifications
- *
+/**
+ * Monitors end of session notifications
  */
-public interface ISessionClosedListener {
-  void onSessionClosed();
+public interface ISessionClosedListener
+{
+    void onSessionClosed();
 }
