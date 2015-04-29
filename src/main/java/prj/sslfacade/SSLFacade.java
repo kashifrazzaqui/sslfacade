@@ -11,6 +11,7 @@ public class SSLFacade implements ISSLFacade
     private Handshaker _handshaker;
     private IHandshakeCompletedListener _hcl;
     private final Worker _worker;
+    private boolean _clientMode;
 
     public SSLFacade(SSLContext context, boolean client,
                      boolean clientAuthRequired, ITaskHandler taskHandler)
@@ -21,8 +22,14 @@ public class SSLFacade implements ISSLFacade
         Buffers buffers = new Buffers(engine.getSession());
         _worker = new Worker(engine, buffers);
         _handshaker = new Handshaker(_worker, taskHandler);
+        _clientMode = client;
     }
 
+    @Override
+    public boolean isClientMode() {
+      return _clientMode;
+    }
+    
     @Override
     public void setHandshakeCompletedListener(IHandshakeCompletedListener hcl)
     {

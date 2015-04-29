@@ -42,7 +42,7 @@ public class SSLFacadeTest {
   public static final String HELLO_FROM_SERVER_1 = "Hello from server 1";
   public static final String HELLO_FROM_CLIENT_2 = "Hello from client 2";
   public static final String HELLO_FROM_SERVER_2 = "Hello from server 2";
-  
+
   private final ITaskHandler taskHandler = new DefaultTaskHandler();
 
   private final CharsetEncoder encoder = Charset.forName("US-ASCII").newEncoder();
@@ -52,9 +52,8 @@ public class SSLFacadeTest {
   private final CharBuffer serverIn1 = CharBuffer.wrap(HELLO_FROM_SERVER_1);
   private final CharBuffer cleintIn2 = CharBuffer.wrap(HELLO_FROM_CLIENT_2);
   private final CharBuffer serverIn2 = CharBuffer.wrap(HELLO_FROM_SERVER_2);
-  
-  private SSLContext sslCtx;
 
+  private SSLContext sslCtx;
 
   public SSLFacadeTest() {
   }
@@ -77,6 +76,45 @@ public class SSLFacadeTest {
         log(who + ": Handshake completed.");
         notifications.add(END_OF_HANDSHAKE);
         sem.release();
+      }
+    });
+  }
+
+  public ISSLListener crateListener(final String who, final ISSLFacade sslServer, final List<String> notificatons, final Semaphore sem) {
+    return new ISSLListener() {
+      @Override
+      public void onWrappedData(ByteBuffer wrappedBytes) {
+        try {
+          log(who + ": pass data " + wrappedBytes);
+          sslServer.decrypt(wrappedBytes);
+          log(who + ": data decrypted " + wrappedBytes);
+        } catch (SSLException ex) {
+          log(who + ": Error while sending data to peer;" + ex);
+        }
+      }
+
+      @Override
+      public void onPlainData(ByteBuffer plainBytes) {
+        log(who + ": received plain data: " + plainBytes);
+        try {
+          CharBuffer decodedString = decoder.decode(plainBytes);
+          log(who + ": String received: " + decodedString);
+          notificatons.add(decodedString.toString());
+          sem.release();
+        } catch (CharacterCodingException ex) {
+          log(who + ": !ERROR! could not decode data received from peer");
+        }
+      }
+    };
+  }
+
+  private void attachSessionCloseListener(final String who, final ISSLFacade sslServer, final List<String> notifications, final Semaphore sem) {
+    sslServer.setCloseListener(new ISessionClosedListener() {
+      public void onSessionClosed() {
+        log(who + ": peer closed the session. Post notification on sem : " + sem);
+        notifications.add(END_OF_SESSION);
+        sem.release();
+        log(who + ": peer closed the session. Sem notified : " + sem);
       }
     });
   }
@@ -171,43 +209,28 @@ public class SSLFacadeTest {
             .hasSize(3)
             .containsExactly(HELLO_FROM_CLIENT_1, HELLO_FROM_CLIENT_2, END_OF_SESSION);
   }
- 
-  public ISSLListener crateListener(final String who, final ISSLFacade sslServer, final List<String> notificatons, final Semaphore sem) {
-    return new ISSLListener() {
-      @Override
-      public void onWrappedData(ByteBuffer wrappedBytes) {
-        try {
-          log(who + ": pass data " + wrappedBytes);
-          sslServer.decrypt(wrappedBytes);
-          log(who + ": data decrypted " + wrappedBytes);
-        } catch (SSLException ex) {
-          log(who + ": Error while sending data to peer;" + ex);
-        }
-      }
 
-      @Override
-      public void onPlainData(ByteBuffer plainBytes) {
-        log(who + ": received plain data: " + plainBytes);
-        try {
-          CharBuffer decodedString = decoder.decode(plainBytes);
-          log(who + ": String received: " + decodedString);
-          notificatons.add(decodedString.toString());
-          sem.release();
-        } catch (CharacterCodingException ex) {
-          log(who + ": !ERROR! could not decode data received from peer");
-        }
-      }
-    };
+  @Test
+  public void check_clientModeSet() {
+    // given
+    boolean isClient = true;
+    
+    //when
+    ISSLFacade fascade = new SSLFacade(sslCtx, isClient, false, taskHandler);
+    
+    //then
+    Assertions.assertThat(fascade.isClientMode());
   }
-
-  private void attachSessionCloseListener(final String who, final ISSLFacade sslServer, final List<String> notifications, final Semaphore sem) {
-    sslServer.setCloseListener(new ISessionClosedListener() {
-      public void onSessionClosed() {
-        log(who + ": peer closed the session. Post notification on sem : " + sem);
-        notifications.add(END_OF_SESSION);
-        sem.release();
-        log(who + ": peer closed the session. Sem notified : " + sem);
-      }
-    });
+  
+  @Test
+  public void check_serverModeSet() {
+    // given
+    boolean isClient = true;
+    
+    //when
+    ISSLFacade fascade = new SSLFacade(sslCtx, isClient, false, taskHandler);
+    
+    //then
+    Assertions.assertThat(fascade.isClientMode());
   }
 }
