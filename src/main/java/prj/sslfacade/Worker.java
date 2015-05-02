@@ -4,186 +4,183 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
 import java.nio.ByteBuffer;
+import prj.sslfacade.defaulthandlers.DefaultOnCloseListener;
 
 class Worker
 {
-    /*  Uses the SSLEngine and Buffers to perform wrap/unwrap operations.
-    Also, provides access to SSLEngine ops for handshake
-    */
+  /*  Uses the SSLEngine and Buffers to perform wrap/unwrap operations.
+   Also, provides access to SSLEngine ops for handshake
+   */
 
-    private final SSLEngine _engine;
-    private final Buffers _buffers;
-    private ISSLListener _sslListener;
+  private final SSLEngine _engine;
+  private final Buffers _buffers;
+  private ISSLListener _sslListener;
+  private ISessionClosedListener _sessionClosedListener = new DefaultOnCloseListener();
 
+  public Worker(SSLEngine engine, Buffers buffers)
+  {
+    _engine = engine;
+    _buffers = buffers;
+  }
 
-    public Worker(SSLEngine engine, Buffers buffers)
-    {
-        _engine = engine;
-        _buffers = buffers;
-    }
+  void setSessionClosedListener(final ISessionClosedListener scl)
+  {
+    _sessionClosedListener = scl;
+  }
 
-    void beginHandshake() throws SSLException
-    {
-        _engine.beginHandshake();
-    }
+  void beginHandshake() throws SSLException
+  {
+    _engine.beginHandshake();
+  }
 
-    SSLEngineResult.HandshakeStatus getHandshakeStatus()
-    {
-        return _engine.getHandshakeStatus();
-    }
+  SSLEngineResult.HandshakeStatus getHandshakeStatus()
+  {
+    return _engine.getHandshakeStatus();
+  }
 
+  Runnable getDelegatedTask()
+  {
+    return _engine.getDelegatedTask();
+  }
 
-    Runnable getDelegatedTask()
-    {
-        return _engine.getDelegatedTask();
-    }
+  SSLEngineResult wrap(ByteBuffer plainData) throws SSLException
+  {
+    _buffers.prepareForWrap(plainData);
+    SSLEngineResult result = doWrap();
 
-    SSLEngineResult wrap(ByteBuffer plainData) throws SSLException
-    {
-        _buffers.prepareForWrap(plainData);
-        SSLEngineResult result = doWrap();
+    emitWrappedData(result);
 
-        emitWrappedData(result);
-
-        switch (result.getStatus())
-        {
-            case BUFFER_UNDERFLOW:
-                throw new RuntimeException("BUFFER_UNDERFLOW while wrapping!");
-            case BUFFER_OVERFLOW:
-                _buffers.grow(BufferType.OUT_CIPHER);
-                if (plainData.hasRemaining())
-                {
-                    plainData.position(result.bytesConsumed());
-                    ByteBuffer remainingData = BufferUtils.slice(plainData);
-                    wrap(remainingData);
-                }
-                break;
-            case OK:
-                break;
-            case CLOSED:
-                break;
+    switch (result.getStatus()) {
+      case BUFFER_UNDERFLOW:
+        throw new RuntimeException("BUFFER_UNDERFLOW while wrapping!");
+      case BUFFER_OVERFLOW:
+        _buffers.grow(BufferType.OUT_CIPHER);
+        if (plainData.hasRemaining()) {
+          plainData.position(result.bytesConsumed());
+          ByteBuffer remainingData = BufferUtils.slice(plainData);
+          wrap(remainingData);
         }
-        return result;
+        break;
+      case OK:
+        break;
+      case CLOSED:
+        _sessionClosedListener.onSessionClosed();
+        break;
     }
+    return result;
+  }
 
-    SSLEngineResult unwrap(ByteBuffer encryptedData) throws SSLException
-    {
-        ByteBuffer allEncryptedData = _buffers.prependCached(encryptedData);
-        _buffers.prepareForUnwrap(allEncryptedData);
-        SSLEngineResult result = doUnwrap();
+  SSLEngineResult unwrap(ByteBuffer encryptedData) throws SSLException
+  {
+    ByteBuffer allEncryptedData = _buffers.prependCached(encryptedData);
+    _buffers.prepareForUnwrap(allEncryptedData);
+    SSLEngineResult result = doUnwrap();
 
-        allEncryptedData.position(result.bytesConsumed());
-        ByteBuffer unprocessedEncryptedData = BufferUtils.slice(allEncryptedData);
+    allEncryptedData.position(result.bytesConsumed());
+    ByteBuffer unprocessedEncryptedData = BufferUtils.slice(allEncryptedData);
 
-        emitPlainData(result);
+    emitPlainData(result);
 
-
-        switch (result.getStatus())
-        {
-            case BUFFER_UNDERFLOW:
-                _buffers.cache(unprocessedEncryptedData);
-                break;
-            case BUFFER_OVERFLOW:
-                _buffers.grow(BufferType.IN_PLAIN);
-                if (unprocessedEncryptedData == null)
-                {
-                    throw new RuntimeException("Worker.unwrap had " +
-                            "buffer_overflow but all data was consumed!!");
-                }
-                else
-                {
-                    unwrap(unprocessedEncryptedData);
-                }
-                break;
-            case OK:
-                if (unprocessedEncryptedData == null)
-                {
-                    _buffers.clearCache();
-                }
-                else
-                {
-                    _buffers.cache(unprocessedEncryptedData);
-                }
-                break;
-            case CLOSED:
-                break;
+    switch (result.getStatus()) {
+      case BUFFER_UNDERFLOW:
+        _buffers.cache(unprocessedEncryptedData);
+        break;
+      case BUFFER_OVERFLOW:
+        _buffers.grow(BufferType.IN_PLAIN);
+        if (unprocessedEncryptedData == null) {
+          throw new RuntimeException("Worker.unwrap had "
+                  + "buffer_overflow but all data was consumed!!");
+        } else {
+          unwrap(unprocessedEncryptedData);
         }
-        return result;
-    }
-
-    void setSSLListener(ISSLListener SSLListener)
-    {
-        _sslListener = SSLListener;
-    }
-
-    void close(boolean properly)
-    {
-        _engine.closeOutbound();
-        try
-        {
-            if (properly)
-            {
-                wrap(null); //sends a TLS close_notify alert
-            }
-            _engine.closeInbound();
+        break;
+      case OK:
+        if (unprocessedEncryptedData == null) {
+          _buffers.clearCache();
+        } else {
+          _buffers.cache(unprocessedEncryptedData);
         }
-        catch (SSLException ignore)
-        {
-        }
+        break;
+      case CLOSED:
 
+        break;
+    }
+    return result;
+  }
+
+  void setSSLListener(ISSLListener SSLListener)
+  {
+    _sslListener = SSLListener;
+  }
+
+  void handleEnOfSession(final SSLEngineResult result)
+  {
+    if (result.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
+      _sessionClosedListener.onSessionClosed();
+    }
+  }
+
+  void close(boolean properly)
+  {
+    _engine.closeOutbound();
+    try {
+      if (properly) {
+        wrap(null); //sends a TLS close_notify alert
+      }
+      _engine.closeInbound();
+    } catch (SSLException ignore) {
     }
 
-    boolean isCloseCompleted()
-    {
-        return _engine.isOutboundDone();
+  }
+
+  boolean isCloseCompleted()
+  {
+    return _engine.isOutboundDone();
+  }
+
+  boolean pendingUnwrap()
+  {
+    return !_buffers.isCacheEmpty();
+  }
+  /* Private */
+
+  private void emitWrappedData(SSLEngineResult result)
+  {
+    if (result.bytesProduced() > 0) {
+      ByteBuffer internalCipherBuffer = _buffers.get(BufferType.OUT_CIPHER);
+      _sslListener.onWrappedData(makeExternalBuffer(internalCipherBuffer));
+    }
+  }
+
+  private void emitPlainData(SSLEngineResult result)
+  {
+    if (result.bytesProduced() > 0) {
+      ByteBuffer internalPlainBuffer = _buffers.get(BufferType.IN_PLAIN);
+      _sslListener.onPlainData(makeExternalBuffer(internalPlainBuffer));
     }
 
-    boolean pendingUnwrap()
-    {
-        return !_buffers.isCacheEmpty();
-    }
-    /* Private */
+  }
 
-    private void emitWrappedData(SSLEngineResult result)
-    {
-        if (result.bytesProduced() > 0)
-        {
-            ByteBuffer internalCipherBuffer = _buffers.get(BufferType.OUT_CIPHER);
-            _sslListener.onWrappedData(makeExternalBuffer(internalCipherBuffer));
-        }
-    }
+  private SSLEngineResult doWrap() throws SSLException
+  {
+    ByteBuffer plainText = _buffers.get(BufferType.OUT_PLAIN);
+    ByteBuffer cipherText = _buffers.get(BufferType.OUT_CIPHER);
+    return _engine.wrap(plainText, cipherText);
+  }
 
-    private void emitPlainData(SSLEngineResult result)
-    {
-        if (result.bytesProduced() > 0)
-        {
-            ByteBuffer internalPlainBuffer = _buffers.get(BufferType.IN_PLAIN);
-            _sslListener.onPlainData(makeExternalBuffer(internalPlainBuffer));
-        }
+  private SSLEngineResult doUnwrap() throws SSLException
+  {
+    ByteBuffer cipherText = _buffers.get(BufferType.IN_CIPHER);
+    ByteBuffer plainText = _buffers.get(BufferType.IN_PLAIN);
+    return _engine.unwrap(cipherText, plainText);
+  }
 
-    }
-
-    private SSLEngineResult doWrap() throws SSLException
-    {
-        ByteBuffer plainText = _buffers.get(BufferType.OUT_PLAIN);
-        ByteBuffer cipherText = _buffers.get(BufferType.OUT_CIPHER);
-        return _engine.wrap(plainText, cipherText);
-    }
-
-    private SSLEngineResult doUnwrap() throws SSLException
-    {
-        ByteBuffer cipherText = _buffers.get(BufferType.IN_CIPHER);
-        ByteBuffer plainText = _buffers.get(BufferType.IN_PLAIN);
-        return _engine.unwrap(cipherText, plainText);
-    }
-
-
-    private static ByteBuffer makeExternalBuffer(ByteBuffer internalBuffer)
-    {
-        ByteBuffer newBuffer = ByteBuffer.allocate(internalBuffer.position());
-        internalBuffer.flip();
-        BufferUtils.copy(internalBuffer, newBuffer);
-        return newBuffer;
-    }
+  private static ByteBuffer makeExternalBuffer(ByteBuffer internalBuffer)
+  {
+    ByteBuffer newBuffer = ByteBuffer.allocate(internalBuffer.position());
+    internalBuffer.flip();
+    BufferUtils.copy(internalBuffer, newBuffer);
+    return newBuffer;
+  }
 
 }

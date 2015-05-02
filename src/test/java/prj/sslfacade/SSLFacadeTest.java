@@ -76,20 +76,21 @@ public class SSLFacadeTest {
         log(who + ": Handshake completed.");
         notifications.add(END_OF_HANDSHAKE);
         sem.release();
+        log(who + ": semaphore released " + sem);
       }
     });
   }
 
-  public ISSLListener crateListener(final String who, final ISSLFacade sslServer, final List<String> notificatons, final Semaphore sem) {
+  public ISSLListener crateListener(final String who, final ISSLFacade sslPeer, final List<String> notificatons, final Semaphore sem) {
     return new ISSLListener() {
       @Override
       public void onWrappedData(ByteBuffer wrappedBytes) {
         try {
-          log(who + ": pass data " + wrappedBytes);
-          sslServer.decrypt(wrappedBytes);
-          log(who + ": data decrypted " + wrappedBytes);
+          log(who + " onWrappedData: pass data " + wrappedBytes);
+          sslPeer.decrypt(wrappedBytes);
+          log(who + " onWrappedData: data decrypted " + wrappedBytes);
         } catch (SSLException ex) {
-          log(who + ": Error while sending data to peer;" + ex);
+          log(who + " onWrappedData: Error while sending data to peer;" + ex);
         }
       }
 
@@ -157,25 +158,25 @@ public class SSLFacadeTest {
     final Semaphore sslClientSem = new Semaphore(0);
     final Semaphore sslServerSem = new Semaphore(0);
 
-    final ISSLFacade sslClient = createSSL(CLIENT_TAG, false, clientNotifications, sslClientSem);
-    final ISSLFacade sslServer = createSSL(SERVER_TAG, true, serverNotifications, sslServerSem);
+    final ISSLFacade sslClient = createSSL(CLIENT_TAG, true, clientNotifications, sslClientSem);
+    final ISSLFacade sslServer = createSSL(SERVER_TAG, false, serverNotifications, sslServerSem);
 
     log("== Init SSL listeners");
     sslClient.setSSLListener(crateListener(CLIENT_TAG, sslServer, clientNotifications, sslClientSem));
     sslServer.setSSLListener(crateListener(SERVER_TAG, sslClient, serverNotifications, sslServerSem));
 
-    log("== Start handshake handlers");
     // when
+    log("== Client started handshake");
     sslClient.beginHandshake();
+    log("== Server started handshake");
     sslServer.beginHandshake();
 
-    log("== Client waits untill handshake is done");
+    log("== Client waits untill handshake is done on " + sslClientSem);
     sslClientSem.acquire();
 
-    //* AK: I'm not sure if this is OK that the handshake is not notified on the Server part.
-    //* This must be double checked.
-    //
-    //  sslServerSem.acquire();
+    log("== Server waits untill handshake is done on " + sslServerSem);
+    sslServerSem.acquire();
+    
     log("== Sending first message (full duplex)");
     sslClient.encrypt(encoder.encode(cleintIn1));
     sslServer.encrypt(encoder.encode(serverIn1));
@@ -202,14 +203,14 @@ public class SSLFacadeTest {
 
     //then
     Assertions.assertThat(clientNotifications)
-            .hasSize(3)
-            .containsExactly(END_OF_HANDSHAKE, HELLO_FROM_SERVER_1, HELLO_FROM_SERVER_2);
+            .hasSize(4)
+            .containsExactly(END_OF_HANDSHAKE, HELLO_FROM_SERVER_1, HELLO_FROM_SERVER_2, END_OF_SESSION);
 
     Assertions.assertThat(serverNotifications)
-            .hasSize(3)
-            .containsExactly(HELLO_FROM_CLIENT_1, HELLO_FROM_CLIENT_2, END_OF_SESSION);
+            .hasSize(4)
+            .containsExactly(END_OF_HANDSHAKE, HELLO_FROM_CLIENT_1, HELLO_FROM_CLIENT_2, END_OF_SESSION);
   }
-
+  
   @Test
   public void check_clientModeSet() {
     // given
