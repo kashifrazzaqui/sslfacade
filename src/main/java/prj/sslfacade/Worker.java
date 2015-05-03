@@ -17,6 +17,10 @@ class Worker
   private ISSLListener _sslListener;
   private ISessionClosedListener _sessionClosedListener = new DefaultOnCloseListener();
 
+  private void debug(final String msg) {
+    System.out.println("[Worker]: " + msg);
+  }
+  
   public Worker(SSLEngine engine, Buffers buffers)
   {
     _engine = engine;
@@ -75,7 +79,7 @@ class Worker
     ByteBuffer allEncryptedData = _buffers.prependCached(encryptedData);
     _buffers.prepareForUnwrap(allEncryptedData);
     SSLEngineResult result = doUnwrap();
-
+    debug("unwrap: doUnwrap result: " + result);
     allEncryptedData.position(result.bytesConsumed());
     ByteBuffer unprocessedEncryptedData = BufferUtils.slice(allEncryptedData);
 
@@ -104,6 +108,12 @@ class Worker
       case CLOSED:
 
         break;
+    }
+    if (_buffers.isCacheEmpty() == false 
+            && result.getStatus() == SSLEngineResult.Status.OK
+            && result.bytesConsumed() > 0) {
+      debug("Still data in cahce");
+      result = unwrap(ByteBuffer.allocate(0));
     }
     return result;
   }
@@ -172,6 +182,7 @@ class Worker
   {
     ByteBuffer cipherText = _buffers.get(BufferType.IN_CIPHER);
     ByteBuffer plainText = _buffers.get(BufferType.IN_PLAIN);
+    debug("doUnwrap: on buffer " + cipherText);
     return _engine.unwrap(cipherText, plainText);
   }
 
