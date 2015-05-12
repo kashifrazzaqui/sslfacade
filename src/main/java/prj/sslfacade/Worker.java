@@ -16,15 +16,17 @@ class Worker
   private final Buffers _buffers;
   private ISSLListener _sslListener;
   private ISessionClosedListener _sessionClosedListener = new DefaultOnCloseListener();
+  private String who;
 
   private void debug(final String msg) {
-    System.out.println("[Worker]: " + msg);
+    System.out.println(who + msg);
   }
   
-  public Worker(SSLEngine engine, Buffers buffers)
+  public Worker(final String debugTag, SSLEngine engine, Buffers buffers)
   {
     _engine = engine;
     _buffers = buffers;
+    this.who = "[Worker:" + debugTag + "]";
   }
 
   void setSessionClosedListener(final ISessionClosedListener scl)
@@ -59,7 +61,7 @@ class Worker
         throw new RuntimeException("BUFFER_UNDERFLOW while wrapping!");
       case BUFFER_OVERFLOW:
         _buffers.grow(BufferType.OUT_CIPHER);
-        if (plainData.hasRemaining()) {
+        if (plainData != null && plainData.hasRemaining()) {
           plainData.position(result.bytesConsumed());
           ByteBuffer remainingData = BufferUtils.slice(plainData);
           wrap(remainingData);
@@ -175,6 +177,7 @@ class Worker
   {
     ByteBuffer plainText = _buffers.get(BufferType.OUT_PLAIN);
     ByteBuffer cipherText = _buffers.get(BufferType.OUT_CIPHER);
+    debug("Wrap buffer: " + plainText + " into buffer: " + cipherText);
     return _engine.wrap(plainText, cipherText);
   }
 

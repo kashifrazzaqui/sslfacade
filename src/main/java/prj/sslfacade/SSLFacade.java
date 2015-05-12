@@ -19,9 +19,10 @@ public class SSLFacade implements ISSLFacade
   {
         //Currently there is no support for SSL session reuse,
     // so no need to take a peerHost or port from the host application
+    final String who = client ? "client" : "server";
     SSLEngine engine = makeSSLEngine(context, client, clientAuthRequired);
     Buffers buffers = new Buffers(engine.getSession());
-    _worker = new Worker(engine, buffers);
+    _worker = new Worker(who, engine, buffers);
     _handshaker = new Handshaker(client, _worker, taskHandler);
     _clientMode = client;
   }
