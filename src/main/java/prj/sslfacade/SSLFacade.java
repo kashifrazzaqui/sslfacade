@@ -8,7 +8,8 @@ import javax.net.ssl.SSLEngineResult;
 
 public class SSLFacade implements ISSLFacade
 {
-
+  private static final String TAG  = "SSLFascade";
+  
   private Handshaker _handshaker;
   private IHandshakeCompletedListener _hcl;
   private final Worker _worker;
@@ -17,7 +18,7 @@ public class SSLFacade implements ISSLFacade
   public SSLFacade(SSLContext context, boolean client,
           boolean clientAuthRequired, ITaskHandler taskHandler)
   {
-        //Currently there is no support for SSL session reuse,
+    //Currently there is no support for SSL session reuse,
     // so no need to take a peerHost or port from the host application
     final String who = client ? "client" : "server";
     SSLEngine engine = makeSSLEngine(context, client, clientAuthRequired);
@@ -25,6 +26,11 @@ public class SSLFacade implements ISSLFacade
     _worker = new Worker(who, engine, buffers);
     _handshaker = new Handshaker(client, _worker, taskHandler);
     _clientMode = client;
+  }
+
+  private void debug(final String message, final String... args)
+  {
+    SSLLog.debug(TAG, message, args);
   }
 
   @Override
@@ -127,12 +133,4 @@ public class SSLFacade implements ISSLFacade
     return engine;
   }
 
-  private void debug(final String message)
-  {
-    if (_clientMode) {
-      System.out.println("[SSLFacade]: client: " + message);
-    } else {
-      System.out.println("[SSLFacade]: server: " + message);
-    }
-  }
 }

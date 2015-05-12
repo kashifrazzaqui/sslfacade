@@ -15,6 +15,7 @@ class Handshaker
    these tasks in compliance with its own compute/IO strategies.
    */
 
+  private final static String TAG  = "Handshaker";
   private final ITaskHandler _taskHandler;
   private final Worker _worker;
   private boolean _finished;
@@ -28,6 +29,11 @@ class Handshaker
     _taskHandler = taskHandler;
     _finished = false;
     _client = client;
+  }
+
+  private void debug(final String msg, final String... args)
+  {
+    SSLLog.debug(TAG, msg, args);
   }
 
   void begin() throws SSLException
@@ -108,15 +114,6 @@ class Handshaker
           debug("No pending data to unwrap");
         }
         break;
-    }
-  }
-
-  private void debug(final String message)
-  {
-    if (_client) {
-      System.out.println("[Handshaker]: client: " + message);
-    } else {
-      System.out.println("[Handshaker]: server: " + message);
     }
   }
 

@@ -11,24 +11,24 @@ class Worker
   /*  Uses the SSLEngine and Buffers to perform wrap/unwrap operations.
    Also, provides access to SSLEngine ops for handshake
    */
-
+  private final static String TAG = "Worker";
   private final SSLEngine _engine;
   private final Buffers _buffers;
   private ISSLListener _sslListener;
   private ISessionClosedListener _sessionClosedListener = new DefaultOnCloseListener();
   private String who;
 
-  private void debug(final String msg) {
-    System.out.println(who + msg);
-  }
-  
-  public Worker(final String debugTag, SSLEngine engine, Buffers buffers)
+  Worker(final String debugTag, SSLEngine engine, Buffers buffers)
   {
     _engine = engine;
     _buffers = buffers;
     this.who = "[Worker:" + debugTag + "]";
   }
-
+  
+   private void debug(final String msg, final String... args) {
+    SSLLog.debug(TAG, msg, args);
+  }
+  
   void setSessionClosedListener(final ISessionClosedListener scl)
   {
     _sessionClosedListener = scl;
