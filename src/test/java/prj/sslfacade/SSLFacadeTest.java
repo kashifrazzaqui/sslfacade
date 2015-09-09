@@ -100,7 +100,7 @@ public class SSLFacadeTest
         }
         log(who + " onWrappedData: data decrypted " + wrappedBytes + "in buffer " + buffer);
       } catch (SSLException ex) {
-        log(who + " onWrappedData: Error while sending data to peer;" + ex);
+        log(who + " onWrappedData: Error while sending data to peer; " + ex);
       }
     }
 
@@ -336,6 +336,59 @@ public class SSLFacadeTest
             .containsExactly(END_OF_HANDSHAKE, HELLO_FROM_CLIENT_1, HELLO_FROM_CLIENT_2, HELLO_FROM_CLIENT_3, END_OF_SESSION);
   }
 
+  
+  /**
+   * @throws javax.net.ssl.SSLException
+   * @throws java.nio.charset.CharacterCodingException
+   * @throws java.lang.InterruptedException
+   */
+  @Test
+  public void shall_transferBigStreamOfMessages() throws SSLException, CharacterCodingException, InterruptedException, IOException
+  {
+    // given
+
+    // when
+    log("== Client started handshake");
+    sslClient.beginHandshake();
+    log("== Server started handshake");
+    sslServer.beginHandshake();
+
+    log("== Client waits untill handshake is done on " + sslClientSem);
+    sslClientSem.acquire();
+
+    log("== Server waits untill handshake is done on " + sslServerSem);
+    sslServerSem.acquire();
+
+    log("== Sending messages");
+    clientListener.setAutoflush(false);
+    sslClient.encrypt(encoder.encode(cleintIn1));
+    sslClient.encrypt(encoder.encode(cleintIn2));
+    sslClient.encrypt(encoder.encode(cleintIn3));
+    clientListener.flush(); // check what happends if all encoded data is passed in one message
+    
+    // Set the autoflush back so the close operation shoudl be done.
+    clientListener.setAutoflush(true);
+    
+    log("== Wait untill all messages arrived");
+    sslServerSem.acquire(3);
+
+    log("== Close connection on client side");
+    attachSessionCloseListener(CLIENT_TAG, sslClient, clientNotifications, sslClientSem);
+    attachSessionCloseListener(SERVER_TAG, sslServer, serverNotifications, sslServerSem);
+    sslClient.close();
+
+    log("== Wait server has received end of session on sem " + sslClientSem);
+    sslServerSem.acquire();
+
+    //then
+    Assertions.assertThat(clientNotifications)
+            .containsExactly(END_OF_HANDSHAKE, END_OF_SESSION);
+
+    Assertions.assertThat(serverNotifications)
+            .containsExactly(END_OF_HANDSHAKE, HELLO_FROM_CLIENT_1, HELLO_FROM_CLIENT_2, HELLO_FROM_CLIENT_3, END_OF_SESSION);
+  }
+
+  
   @Test
   public void check_clientModeSet()
   {
