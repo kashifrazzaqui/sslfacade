@@ -23,6 +23,8 @@ public interface ISSLFacade
     void close();
 
     boolean isCloseCompleted();
+    
+    boolean isClientMode();
 
     void terminate();
 }
